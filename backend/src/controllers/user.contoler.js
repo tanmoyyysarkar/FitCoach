@@ -3,7 +3,7 @@ import { pool } from "../db/index.js";
 import { asyncHandler } from "../utils/asyncHandler.js";
 import { ApiError } from "../utils/ApiError.js";
 import { ApiResponse } from "../utils/ApiResponse.js";
-
+import jwt from "jsonwebtoken"
 const generateAccessAndRefreshTokens = async (user_id) => {
   try {
     const {
@@ -38,7 +38,7 @@ const generateAccessAndRefreshTokens = async (user_id) => {
     await pool.query(
       `UPDATE users
        SET refresh_token = $1
-       WHERE id = $2`,
+       WHERE user_id = $2`,
       [refreshToken, user_id],
     );
 
@@ -111,7 +111,7 @@ export const registerUser = asyncHandler(async (req, res) => {
 
 export const loginUser = asyncHandler(async (req, res) => {
   const { email, password } = req.body;
-  if (!username && !email) {
+  if (!email) {
     throw new ApiError(400, "username or email is required");
   }
 
@@ -119,7 +119,7 @@ export const loginUser = asyncHandler(async (req, res) => {
 
   const {
     rows: [user],
-  } = await pool.query("SELECT user_id FROM users WHERE email = $1", [
+  } = await pool.query("SELECT user_id,password_hash FROM users WHERE email = $1", [
     normalizedEmail,
   ]);
 
