@@ -23,6 +23,8 @@ services:
       DATABASE_URL: postgres://fitness_user:fitness_password@postgres:5432/fitness_db
     depends_on:
       - postgres
+    volumes:
+      - ./backend:/app
 
   frontend:
     build: ./frontend
@@ -31,6 +33,9 @@ services:
       - "5173:5173"
     depends_on:
       - backend
+    volumes:
+      - ./frontend:/app
+      - /app/node_modules
 
 volumes:
   postgres_data:
