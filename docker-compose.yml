@@ -21,6 +21,8 @@ services:
     environment:
       PORT: 5000
       DATABASE_URL: postgres://fitness_user:fitness_password@postgres:5432/fitness_db
+      ACCESS_TOKEN_SECRET: your_secret_hash
+      REFRESH_TOKEN_SECRET: your_secret_hash_again
     depends_on:
       - postgres
     volumes:
