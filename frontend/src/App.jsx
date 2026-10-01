@@ -1,13 +1,12 @@
-import { useState, useRef } from "react"
-import HeroSection from "./components/custom/HeroSection"
-import ExploreSection from "./components/custom/ExploreSection"
-import SignupOnboardingModal from "./components/custom/SignupOnboardingModal"
+import { useState } from "react"
+import { motion, AnimatePresence } from "framer-motion"
+import HomeScreen from "./screens/HomeScreen"
+import LoginScreen from "./screens/LoginScreen"
+import SignupScreen from "./screens/SignupScreen"
 
 function App() {
-  const [isAuthModalOpen, setIsAuthModalOpen] = useState(false)
-  const [authModalMode, setAuthModalMode] = useState("signup") // "signup" | "login"
+  const [currentScreen, setCurrentScreen] = useState("home") // "home" | "login" | "signup"
   const [user, setUser] = useState(() => {
-    // Lazy init: read the persisted session once instead of in an effect
     try {
       const savedUser = localStorage.getItem("fitcoach_user")
       return savedUser ? JSON.parse(savedUser) : null
@@ -16,54 +15,68 @@ function App() {
       return null
     }
   })
-  const exploreRef = useRef(null)
-
-  const handleOpenSignup = () => {
-    setAuthModalMode("signup")
-    setIsAuthModalOpen(true)
-  }
-
-  const handleOpenLogin = () => {
-    setAuthModalMode("login")
-    setIsAuthModalOpen(true)
-  }
 
   const handleAuthSuccess = (userData) => {
     setUser(userData)
-    setIsAuthModalOpen(false)
+    setCurrentScreen("home")
   }
 
-  const handleScrollToExplore = () => {
-    if (exploreRef.current) {
-      exploreRef.current.scrollIntoView({ behavior: "smooth" })
-    }
+  const navigateTo = (screen) => {
+    setCurrentScreen(screen)
+    window.scrollTo({ top: 0, behavior: "instant" })
   }
 
   return (
     <div className="min-h-screen bg-[#0a0f1a] font-sans selection:bg-orange-500/40 selection:text-white">
-      {/* 1. Hero Section (Screenshot 1) */}
-      <HeroSection 
-        onOpenSignup={handleOpenSignup}
-        onOpenLogin={handleOpenLogin}
-        onExploreClick={handleScrollToExplore}
-      />
+      <AnimatePresence mode="wait">
+        {currentScreen === "home" && (
+          <motion.div
+            key="home"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            transition={{ duration: 0.2 }}
+          >
+            <HomeScreen
+              onOpenSignup={() => navigateTo("signup")}
+              onOpenLogin={() => navigateTo("login")}
+              user={user}
+            />
+          </motion.div>
+        )}
 
-      {/* 2. Explore Experiences Feed (Screenshot 4) */}
-      <div ref={exploreRef}>
-        <ExploreSection 
-          onOpenSignup={handleOpenSignup}
-          user={user}
-        />
-      </div>
+        {currentScreen === "login" && (
+          <motion.div
+            key="login"
+            initial={{ opacity: 0, y: 12 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -12 }}
+            transition={{ duration: 0.2 }}
+          >
+            <LoginScreen
+              onNavigateSignup={() => navigateTo("signup")}
+              onNavigateHome={() => navigateTo("home")}
+              onLoginSuccess={handleAuthSuccess}
+            />
+          </motion.div>
+        )}
 
-      {/* 3. Onboarding & Sign Up / Login Modal Flow (Screenshot 2 & Screenshot 3) */}
-      <SignupOnboardingModal
-        key={isAuthModalOpen ? authModalMode : "closed"}
-        isOpen={isAuthModalOpen}
-        initialMode={authModalMode}
-        onClose={() => setIsAuthModalOpen(false)}
-        onSuccess={handleAuthSuccess}
-      />
+        {currentScreen === "signup" && (
+          <motion.div
+            key="signup"
+            initial={{ opacity: 0, y: 12 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -12 }}
+            transition={{ duration: 0.2 }}
+          >
+            <SignupScreen
+              onNavigateLogin={() => navigateTo("login")}
+              onNavigateHome={() => navigateTo("home")}
+              onSignupSuccess={handleAuthSuccess}
+            />
+          </motion.div>
+        )}
+      </AnimatePresence>
     </div>
   )
 }
