@@ -3,7 +3,7 @@ import { pool } from "../db/index.js";
 import { asyncHandler } from "../utils/asyncHandler.js";
 import { ApiError } from "../utils/ApiError.js";
 import { ApiResponse } from "../utils/ApiResponse.js";
-import jwt from "jsonwebtoken"
+import jwt from "jsonwebtoken";
 const generateAccessAndRefreshTokens = async (user_id) => {
   try {
     const {
@@ -17,7 +17,7 @@ const generateAccessAndRefreshTokens = async (user_id) => {
 
     const accessToken = jwt.sign(
       {
-        userId: user.user_id,
+        user_id: user.user_id,
         email: user.email,
       },
       process.env.ACCESS_TOKEN_SECRET,
@@ -27,7 +27,7 @@ const generateAccessAndRefreshTokens = async (user_id) => {
     );
     const refreshToken = jwt.sign(
       {
-        userId: user.user_id,
+        user_id: user.user_id,
       },
       process.env.REFRESH_TOKEN_SECRET,
       {
@@ -119,9 +119,10 @@ export const loginUser = asyncHandler(async (req, res) => {
 
   const {
     rows: [user],
-  } = await pool.query("SELECT user_id,password_hash FROM users WHERE email = $1", [
-    normalizedEmail,
-  ]);
+  } = await pool.query(
+    "SELECT user_id,password_hash FROM users WHERE email = $1",
+    [normalizedEmail],
+  );
 
   if (!user) {
     throw new ApiError(404, "User does not exist");
@@ -139,16 +140,98 @@ export const loginUser = asyncHandler(async (req, res) => {
 
   const options = {
     httpOnly: true,
-    secure: true,
+    secure: process.env.NODE_ENV === "production",
+    sameSite: "lax",
+    path: "/",
   };
 
-  return res.status(200)
-  .cookie("accessToken", accessToken, options)
-  .cookie("refreshToken", refreshToken, options)
-  .json(new ApiResponse(200,
-    {
-      user : user.user_id, accessToken, refreshToken
-    },
-    "Logged in sucessfully."
-  ))
+  return res
+    .status(200)
+    .cookie("accessToken", accessToken, options)
+    .cookie("refreshToken", refreshToken, options)
+    .json(
+      new ApiResponse(
+        200,
+        {
+          user: user.user_id,
+          accessToken,
+          refreshToken,
+        },
+        "Logged in sucessfully.",
+      ),
+    );
+});
+
+export const logoutUser = asyncHandler(async (req, res) => {
+  await pool.query(
+    `
+    UPDATE users
+    SET refresh_token = NULL
+    WHERE user_id = $1
+    `,
+    [user.user_id],
+  );
+  const options = {
+    httpOnly: true,
+    secure: false,//false until HTTPS
+  };
+
+  return res
+    .status(200)
+    .clearCookie("accessToken", options)
+    .clearCookie("refreshToken", options)
+    .json(new ApiResponse(200, {}, "User logged Out"));
+});
+
+export const refreshAccessToken = asyncHandler(async (req, res) => {
+  const incomingRefreshToken =
+    req.cookies.refreshToken || req.body.refreshToken;
+
+  if (!incomingRefreshToken) {
+    throw new ApiError(401, "unauthorized request");
+  }
+
+  try {
+    const decodedToken = jwt.verify(
+      incomingRefreshToken,
+      process.env.REFRESH_TOKEN_SECRET,
+    );
+
+    const {
+      rows: [user],
+    } = await pool.query(
+      "SELECT user_id,refresh_token FROM users WHERE user_id = $1",
+      [decodedToken.user_id],
+    );
+
+    if (!user) {
+      throw new ApiError(401, "Invalid refresh token");
+    }
+
+    if (incomingRefreshToken !== user?.refreshToken) {
+      throw new ApiError(401, "Refresh token is expired or used");
+    }
+
+    const options = {
+      httpOnly: true,
+      secure: false,//false until HTTPS
+    };
+
+    const { accessToken, refreshToken } =
+      await generateAccessAndRefreshTokens(user.user_id);
+
+    return res
+      .status(200)
+      .cookie("accessToken", accessToken, options)
+      .cookie("refreshToken", refreshToken, options)
+      .json(
+        new ApiResponse(
+          200,
+          { accessToken, refreshToken: refreshToken },
+          "Access token refreshed",
+        ),
+      );
+  } catch (error) {
+    throw new ApiError(401, error?.message || "Invalid refresh token");
+  }
 });
