@@ -17,7 +17,7 @@ const generateAccessAndRefreshTokens = async (user_id) => {
 
     const accessToken = jwt.sign(
       {
-        userId: user.id,
+        userId: user.user_id,
         email: user.email,
       },
       process.env.ACCESS_TOKEN_SECRET,
@@ -27,7 +27,7 @@ const generateAccessAndRefreshTokens = async (user_id) => {
     );
     const refreshToken = jwt.sign(
       {
-        userId: user.id,
+        userId: user.user_id,
       },
       process.env.REFRESH_TOKEN_SECRET,
       {
