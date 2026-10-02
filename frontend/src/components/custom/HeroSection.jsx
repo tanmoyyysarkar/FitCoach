@@ -1,6 +1,8 @@
 import { motion } from "framer-motion"
+import { useNavigate } from "react-router-dom"
 import { Dumbbell, ArrowRight, Layers, TrendingUp, ShieldAlert, ChevronDown, LogOut } from "lucide-react"
 export default function HeroSection({ onOpenSignup, onOpenLogin, onLogout, onExploreClick, user }) {
+  const navigate = useNavigate()
   return (
     <div className="relative min-h-screen w-full bg-[#070605] overflow-hidden flex flex-col justify-between select-none">
       {/* 1. CBUM Background Layer with tuned opacity and cinematic gradients */}
@@ -132,7 +134,7 @@ export default function HeroSection({ onOpenSignup, onOpenLogin, onLogout, onExp
             className="mt-6 text-zinc-300/90 font-normal text-sm sm:text-base md:text-[17px] max-w-lg leading-relaxed"
           >
             The workout tracker built around the trainer-client relationship.
-            Build programs, assign them, and watch real progress and injury risk — without chasing anyone on WhatsApp.
+            Build programs, assign them, and watch real progress and injury risk without chasing anyone on WhatsApp.
           </motion.p>
 
           {/* Action CTAs */}
@@ -142,25 +144,39 @@ export default function HeroSection({ onOpenSignup, onOpenLogin, onLogout, onExp
             transition={{ duration: 0.7, delay: 0.35 }}
             className="mt-8 flex flex-row items-center gap-4 w-full sm:w-auto"
           >
-            {/* Primary Trainer CTA */}
-            <button
-              type="button"
-              onClick={onOpenSignup}
-              className="bg-[#f95716] hover:bg-[#ea4808] text-white text-sm sm:text-base font-semibold px-6 sm:px-7 py-3.5 rounded-full shadow-[0_6px_22px_rgba(249,87,22,0.4)] hover:shadow-[0_8px_30px_rgba(249,87,22,0.6)] active:scale-95 transition-all flex items-center justify-center gap-2.5 cursor-pointer group"
-            >
-              <Dumbbell className="w-4 h-4 text-white" />
-              <span>I'm a trainer</span>
-              <ArrowRight className="w-4 h-4 transition-transform group-hover:translate-x-1" />
-            </button>
+            {user ? (
+              <button
+                type="button"
+                onClick={() => navigate(user.role === "client" ? "/dashboard" : "/home")}
+                className="bg-[#f95716] hover:bg-[#ea4808] text-white text-sm sm:text-base font-semibold px-6 sm:px-7 py-3.5 rounded-full shadow-[0_6px_22px_rgba(249,87,22,0.4)] hover:shadow-[0_8px_30px_rgba(249,87,22,0.6)] active:scale-95 transition-all flex items-center justify-center gap-2.5 cursor-pointer group"
+              >
+                <Dumbbell className="w-4 h-4 text-white" />
+                <span>Go to Dashboard</span>
+                <ArrowRight className="w-4 h-4 transition-transform group-hover:translate-x-1" />
+              </button>
+            ) : (
+              <>
+                {/* Primary Trainer CTA */}
+                <button
+                  type="button"
+                  onClick={onOpenSignup}
+                  className="bg-[#f95716] hover:bg-[#ea4808] text-white text-sm sm:text-base font-semibold px-6 sm:px-7 py-3.5 rounded-full shadow-[0_6px_22px_rgba(249,87,22,0.4)] hover:shadow-[0_8px_30px_rgba(249,87,22,0.6)] active:scale-95 transition-all flex items-center justify-center gap-2.5 cursor-pointer group"
+                >
+                  <Dumbbell className="w-4 h-4 text-white" />
+                  <span>I'm a trainer</span>
+                  <ArrowRight className="w-4 h-4 transition-transform group-hover:translate-x-1" />
+                </button>
 
-            {/* Secondary Member CTA */}
-            <button
-              type="button"
-              onClick={onOpenSignup}
-              className="bg-zinc-900/50 hover:bg-zinc-800/80 border border-zinc-700/70 hover:border-zinc-500 text-white text-sm sm:text-base font-semibold px-6 sm:px-7 py-3.5 rounded-full backdrop-blur-sm active:scale-95 transition-all flex items-center justify-center cursor-pointer"
-            >
-              Join as a member
-            </button>
+                {/* Secondary Member CTA */}
+                <button
+                  type="button"
+                  onClick={onOpenSignup}
+                  className="bg-zinc-900/50 hover:bg-zinc-800/80 border border-zinc-700/70 hover:border-zinc-500 text-white text-sm sm:text-base font-semibold px-6 sm:px-7 py-3.5 rounded-full backdrop-blur-sm active:scale-95 transition-all flex items-center justify-center cursor-pointer"
+                >
+                  Join as a member
+                </button>
+              </>
+            )}
           </motion.div>
 
           {/* Trust stats & proof points */}
@@ -168,10 +184,10 @@ export default function HeroSection({ onOpenSignup, onOpenLogin, onLogout, onExp
             initial={{ opacity: 0, y: 16 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.7, delay: 0.5 }}
-            className="mt-12 flex flex-col sm:flex-row sm:flex-wrap items-start gap-x-8 gap-y-3.5 text-xs sm:text-sm"
+            className="mt-12 flex flex-col sm:flex-row sm:flex-wrap lg:flex-nowrap items-start gap-x-6 gap-y-3.5 text-xs sm:text-sm"
           >
             {/* Templates */}
-            <div className="flex items-center gap-2">
+            <div className="flex shrink-0 items-center gap-2 lg:whitespace-nowrap">
               <span className="p-1.5 rounded-md bg-orange-500/15 border border-orange-500/25 text-orange-500">
                 <Layers className="w-3.5 h-3.5" />
               </span>
@@ -182,7 +198,7 @@ export default function HeroSection({ onOpenSignup, onOpenLogin, onLogout, onExp
             </div>
 
             {/* Auto PRs */}
-            <div className="flex items-center gap-2">
+            <div className="flex shrink-0 items-center gap-2 lg:whitespace-nowrap">
               <span className="p-1.5 rounded-md bg-orange-500/15 border border-orange-500/25 text-orange-500">
                 <TrendingUp className="w-3.5 h-3.5" />
               </span>
@@ -193,7 +209,7 @@ export default function HeroSection({ onOpenSignup, onOpenLogin, onLogout, onExp
             </div>
 
             {/* Injury flags */}
-            <div className="flex items-center gap-2 sm:basis-full">
+            <div className="flex shrink-0 items-center gap-2 lg:whitespace-nowrap">
               <span className="p-1.5 rounded-md bg-orange-500/15 border border-orange-500/25 text-orange-500">
                 <ShieldAlert className="w-3.5 h-3.5" />
               </span>

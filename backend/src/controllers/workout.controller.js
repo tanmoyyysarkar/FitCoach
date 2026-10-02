@@ -191,3 +191,66 @@ export const getWorkout = asyncHandler(async (req, res) => {
 
   return res.json(new ApiResponse(200, { ...workout, exercises }, "Workout fetched"));
 });
+
+export const updateWorkout = asyncHandler(async (req, res) => {
+  const { workoutId } = req.params;
+  const { name, description, exercises } = req.body;
+  const { user_id: userId, role } = req.user;
+
+  if (typeof name !== "string" || !name.trim()) throw new ApiError(400, "Workout name is required");
+  if (!Array.isArray(exercises) || exercises.length === 0) throw new ApiError(400, "At least one exercise is required");
+
+  const { rows: [workout] } = await pool.query(
+    "SELECT workout_id, created_by FROM workouts WHERE workout_id = $1",
+    [workoutId],
+  );
+  if (!workout) throw new ApiError(404, "Workout not found");
+  if (role !== "admin" && String(workout.created_by) !== userId) throw new ApiError(403, "Only the workout owner can update it");
+
+  const ids = exercises.map((exercise) => exercise.exerciseId);
+  if (ids.some((id) => typeof id !== "string" || !id.trim())) throw new ApiError(400, "Every exerciseId is required");
+  const { rows: found } = await pool.query("SELECT exercise_id FROM exercises WHERE exercise_id = ANY($1)", [ids]);
+  const foundIds = new Set(found.map((exercise) => exercise.exercise_id));
+  const missingId = ids.find((id) => !foundIds.has(id));
+  if (missingId) throw new ApiError(404, `Unknown exerciseId: ${missingId}`);
+
+  for (const [exerciseIndex, exercise] of exercises.entries()) {
+    if (!Array.isArray(exercise.sets) || !exercise.sets.length) throw new ApiError(400, `exercises[${exerciseIndex}].sets must not be empty`);
+    for (const [setIndex, set] of exercise.sets.entries()) {
+      if (!isPosInt(Number(set.reps))) throw new ApiError(400, `exercises[${exerciseIndex}].sets[${setIndex}].reps must be a positive integer`);
+      if (set.weight != null && set.weight !== "" && !(Number(set.weight) >= 0)) throw new ApiError(400, `exercises[${exerciseIndex}].sets[${setIndex}].weight must be >= 0`);
+    }
+  }
+
+  const db = await pool.connect();
+  try {
+    await db.query("BEGIN");
+    const { rows: [updatedWorkout] } = await db.query(
+      `UPDATE workouts SET name = $1, description = $2 WHERE workout_id = $3
+       RETURNING workout_id, created_by, name, description, created_at`,
+      [name.trim(), description ?? null, workoutId],
+    );
+    await db.query("DELETE FROM workout_exercises WHERE workout_id = $1", [workoutId]);
+
+    for (const [exerciseIndex, exercise] of exercises.entries()) {
+      const { rows: [workoutExercise] } = await db.query(
+        `INSERT INTO workout_exercises (workout_id, exercise_id, exercise_order, target_sets, target_reps, target_weight)
+         VALUES ($1, $2, $3, $4, $5, $6) RETURNING workout_exercise_id`,
+        [workoutId, exercise.exerciseId, exerciseIndex + 1, exercise.sets.length, Number(exercise.sets[0].reps), exercise.sets[0].weight === "" ? null : Number(exercise.sets[0].weight)],
+      );
+      for (const [setIndex, set] of exercise.sets.entries()) {
+        await db.query(
+          "INSERT INTO workout_exercise_sets (workout_exercise_id, set_number, reps, weight) VALUES ($1, $2, $3, $4)",
+          [workoutExercise.workout_exercise_id, setIndex + 1, Number(set.reps), set.weight === "" ? null : Number(set.weight)],
+        );
+      }
+    }
+    await db.query("COMMIT");
+    return res.json(new ApiResponse(200, updatedWorkout, "Workout updated"));
+  } catch (error) {
+    await db.query("ROLLBACK");
+    throw error;
+  } finally {
+    db.release();
+  }
+});

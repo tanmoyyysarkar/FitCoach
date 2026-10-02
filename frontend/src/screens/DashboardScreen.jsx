@@ -1,15 +1,13 @@
 import { useEffect, useState } from "react";
-import { Dumbbell, Loader2, LogOut, Plus, Sparkles } from "lucide-react";
+import { useNavigate } from "react-router-dom";
+import { Dumbbell, Home, Loader2, LogOut, Plus, Sparkles } from "lucide-react";
 import api from "../api/axios";
-import WorkoutBuilder from "../components/custom/WorkoutBuilder";
 
 export default function DashboardScreen({ user, onLogout }) {
-  const [isBuilding, setIsBuilding] = useState(false);
-  const [workoutSaved, setWorkoutSaved] = useState(false);
+  const navigate = useNavigate();
   const [workouts, setWorkouts] = useState([]);
   const [loadingWorkouts, setLoadingWorkouts] = useState(true);
   const [workoutError, setWorkoutError] = useState("");
-  const [reloadWorkouts, setReloadWorkouts] = useState(0);
 
   useEffect(() => {
     let cancelled = false;
@@ -34,25 +32,7 @@ export default function DashboardScreen({ user, onLogout }) {
     return () => {
       cancelled = true;
     };
-  }, [reloadWorkouts]);
-
-  if (isBuilding) {
-    return (
-      <main className="min-h-screen bg-[#070605] px-4 py-6 text-zinc-100 sm:px-8 lg:px-12">
-        <div className="mx-auto max-w-6xl rounded-[2rem] border border-white/10 bg-[#0c0a09] p-5 shadow-2xl shadow-black/40 sm:p-8">
-          <WorkoutBuilder
-            user={user}
-            onCancel={() => setIsBuilding(false)}
-            onSaved={() => {
-              setIsBuilding(false);
-              setWorkoutSaved(true);
-              setReloadWorkouts((current) => current + 1);
-            }}
-          />
-        </div>
-      </main>
-    );
-  }
+  }, []);
 
   return (
     <main className="min-h-screen bg-[#070605] text-zinc-100">
@@ -69,14 +49,24 @@ export default function DashboardScreen({ user, onLogout }) {
               <p className="text-xs text-zinc-500">Your training space</p>
             </div>
           </div>
-          <button
-            type="button"
-            onClick={onLogout}
-            className="inline-flex items-center gap-2 rounded-full px-3 py-2 text-sm font-semibold text-zinc-400 transition hover:bg-white/5 hover:text-white"
-          >
-            <LogOut className="h-4 w-4" />{" "}
-            <span className="hidden sm:inline">Log out</span>
-          </button>
+          <div className="flex items-center gap-2">
+            <button
+              type="button"
+              onClick={() => navigate("/home")}
+              className="inline-flex items-center gap-2 rounded-full px-3 py-2 text-sm font-semibold text-zinc-400 transition hover:bg-white/5 hover:text-white"
+            >
+              <Home className="h-4 w-4" />{" "}
+              <span className="hidden sm:inline">Home</span>
+            </button>
+            <button
+              type="button"
+              onClick={onLogout}
+              className="inline-flex items-center gap-2 rounded-full px-3 py-2 text-sm font-semibold text-zinc-400 transition hover:bg-white/5 hover:text-white"
+            >
+              <LogOut className="h-4 w-4" />{" "}
+              <span className="hidden sm:inline">Log out</span>
+            </button>
+          </div>
         </div>
       </header>
 
@@ -98,10 +88,17 @@ export default function DashboardScreen({ user, onLogout }) {
             </p>
             <button
               type="button"
-              onClick={() => setIsBuilding(true)}
+              onClick={() => navigate("/create-workout")}
               className="mt-8 inline-flex items-center gap-2 rounded-full bg-[#f95716] px-6 py-3 text-sm font-semibold text-white shadow-[0_6px_22px_rgba(249,87,22,0.4)] transition hover:bg-[#ea4808]"
             >
               <Plus className="h-4 w-4" /> Create a workout
+            </button>
+            <button
+              type="button"
+              onClick={() => navigate("/log-session")}
+              className="ml-3 mt-8 inline-flex items-center gap-2 rounded-full border border-white/15 px-6 py-3 text-sm font-semibold text-zinc-300 transition hover:bg-white/5 hover:text-white"
+            >
+              <Dumbbell className="h-4 w-4" /> Start empty session
             </button>
           </div>
         </section>
@@ -116,11 +113,6 @@ export default function DashboardScreen({ user, onLogout }) {
                 Workouts
               </h2>
             </div>
-            {workoutSaved && (
-              <p className="text-sm font-medium text-emerald-400">
-                Your workout was saved successfully.
-              </p>
-            )}
           </div>
           {workoutError && (
             <p className="mt-6 rounded-xl border border-red-500/30 bg-red-500/10 px-4 py-3 text-sm text-red-300">
@@ -147,7 +139,7 @@ export default function DashboardScreen({ user, onLogout }) {
               </p>
               <button
                 type="button"
-                onClick={() => setIsBuilding(true)}
+                onClick={() => navigate("/create-workout")}
                 className="mt-5 inline-flex items-center gap-2 text-sm font-semibold text-orange-400 hover:text-orange-300"
               >
                 <Plus className="h-4 w-4" /> Add your first workout
@@ -181,6 +173,13 @@ export default function DashboardScreen({ user, onLogout }) {
                     {workout.exercise_count} exercises · {workout.total_sets}{" "}
                     sets
                   </p>
+                  <button
+                    type="button"
+                    onClick={() => navigate(`/log-session/${workout.workout_id}`)}
+                    className="mt-4 text-sm font-semibold text-orange-400 hover:text-orange-300"
+                  >
+                    Start workout
+                  </button>
                 </article>
               ))}
             </div>
