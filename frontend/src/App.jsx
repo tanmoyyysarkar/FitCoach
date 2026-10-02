@@ -3,21 +3,19 @@ import { motion, AnimatePresence } from "framer-motion"
 import HomeScreen from "./screens/HomeScreen"
 import LoginScreen from "./screens/LoginScreen"
 import SignupScreen from "./screens/SignupScreen"
+import { useAuth } from "./context/AuthContext"
 
 function App() {
   const [currentScreen, setCurrentScreen] = useState("home") // "home" | "login" | "signup"
-  const [user, setUser] = useState(() => {
-    try {
-      const savedUser = localStorage.getItem("fitcoach_user")
-      return savedUser ? JSON.parse(savedUser) : null
-    } catch (e) {
-      console.error(e)
-      return null
-    }
-  })
+  const { user, setAuthenticatedUser, logout } = useAuth()
 
   const handleAuthSuccess = (userData) => {
-    setUser(userData)
+    setAuthenticatedUser(userData)
+    setCurrentScreen("home")
+  }
+
+  const handleLogout = async () => {
+    await logout()
     setCurrentScreen("home")
   }
 
@@ -41,6 +39,7 @@ function App() {
               onOpenSignup={() => navigateTo("signup")}
               onOpenLogin={() => navigateTo("login")}
               user={user}
+              onLogout={handleLogout}
             />
           </motion.div>
         )}

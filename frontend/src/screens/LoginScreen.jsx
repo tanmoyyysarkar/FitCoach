@@ -37,7 +37,6 @@ export default function LoginScreen({ onNavigateSignup, onLoginSuccess, onNaviga
         role: data.data?.role || "client",
       }
 
-      localStorage.setItem("fitcoach_user", JSON.stringify(user))
       setSuccess("Logged in successfully!")
       setTimeout(() => {
         if (onLoginSuccess) onLoginSuccess(user)

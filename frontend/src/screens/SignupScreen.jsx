@@ -125,7 +125,18 @@ export default function SignupScreen({ onNavigateLogin, onSignupSuccess, onNavig
         email: formData.email,
         role: formData.role,
       }
-      localStorage.setItem("fitcoach_user", JSON.stringify(userData))
+      // Register doesn't set auth cookies, so log in with the same
+      // credentials to establish a real session that survives refresh.
+      try {
+        await api.post("/users/login", {
+          email: payload.email,
+          password: formData.password,
+        })
+      } catch {
+        setError("Account created. Please log in.")
+        setTimeout(() => onNavigateLogin?.(), 1200)
+        return
+      }
       setTimeout(() => {
         if (onSignupSuccess) onSignupSuccess(userData)
       }, 900)
@@ -148,7 +159,6 @@ export default function SignupScreen({ onNavigateLogin, onSignupSuccess, onNavig
           email: formData.email,
           role: formData.role,
         }
-        localStorage.setItem("fitcoach_user", JSON.stringify(mockUser))
         setTimeout(() => {
           if (onSignupSuccess) onSignupSuccess(mockUser)
         }, 900)

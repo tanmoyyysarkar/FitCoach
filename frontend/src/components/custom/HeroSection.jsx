@@ -1,7 +1,6 @@
 import { motion } from "framer-motion"
 import { Dumbbell, ArrowRight, Layers, TrendingUp, ShieldAlert, ChevronDown } from "lucide-react"
-
-export default function HeroSection({ onOpenSignup, onOpenLogin, onExploreClick }) {
+export default function HeroSection({ onOpenSignup, onOpenLogin, onLogout, onExploreClick, user }) {
   return (
     <div className="relative min-h-screen w-full bg-[#070605] overflow-hidden flex flex-col justify-between select-none">
       {/* 1. CBUM Background Layer with tuned opacity and cinematic gradients */}
@@ -64,7 +63,6 @@ export default function HeroSection({ onOpenSignup, onOpenLogin, onExploreClick 
           >
             How it works
           </button>
-
           <button
             type="button"
             onClick={onOpenLogin}

@@ -5,6 +5,19 @@ const api = axios.create({
   withCredentials: true,
 });
 
+let refreshPromise = null;
+
+export const refreshSession = () => {
+  if (!refreshPromise) {
+    refreshPromise = api
+      .post("/users/refresh-token")
+      .finally(() => {
+        refreshPromise = null;
+      });
+  }
+  return refreshPromise;
+};
+
 // Response interceptor
 api.interceptors.response.use(
   // Request succeeded
@@ -19,13 +32,15 @@ api.interceptors.response.use(
     // Access token expired
     if (
       error.response?.status === 401 &&
-      !originalRequest._retry
+      originalRequest &&
+      !originalRequest._retry &&
+      !originalRequest.url?.includes("/users/refresh-token")
     ) {
       originalRequest._retry = true;
 
       try {
         // Ask backend to refresh the tokens
-        await api.post("/users/refresh-token");
+        await refreshSession();
 
         // New cookies have been set by backend.
         // Retry the original request.

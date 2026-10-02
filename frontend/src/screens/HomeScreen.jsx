@@ -2,7 +2,7 @@ import { useRef } from "react"
 import HeroSection from "../components/custom/HeroSection"
 import ExploreSection from "../components/custom/ExploreSection"
 
-export default function HomeScreen({ onOpenSignup, onOpenLogin, user }) {
+export default function HomeScreen({ onOpenSignup, onOpenLogin, user, onLogout }) {
   const exploreRef = useRef(null)
 
   const handleScrollToExplore = () => {
@@ -16,6 +16,8 @@ export default function HomeScreen({ onOpenSignup, onOpenLogin, user }) {
       <HeroSection
         onOpenSignup={onOpenSignup}
         onOpenLogin={onOpenLogin}
+        onLogout={onLogout}
+        user={user}
         onExploreClick={handleScrollToExplore}
       />
 
