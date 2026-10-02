@@ -174,13 +174,18 @@ export const logoutUser = asyncHandler(async (req, res) => {
   );
   const options = {
     httpOnly: true,
-    secure: false, //false until HTTPS
+    secure: process.env.NODE_ENV === "production",
+    sameSite: "lax",
+    path: "/",
   };
 
   return res
     .status(200)
-    .clearCookie("accessToken", options)
-    .clearCookie("refreshToken", options)
+    .clearCookie("accessToken", { ...options, httpOnly: true })
+    .clearCookie("refreshToken", { ...options })
+    // Also remove legacy copies an older server may have scoped to /api/users
+    .clearCookie("accessToken", { ...options, path: "/api/users" })
+    .clearCookie("refreshToken", { ...options, path: "/api/users" })
     .json(new ApiResponse(200, {}, "User logged Out"));
 });
 
@@ -209,13 +214,15 @@ export const refreshAccessToken = asyncHandler(async (req, res) => {
       throw new ApiError(401, "Invalid refresh token");
     }
 
-    if (incomingRefreshToken !== user?.refreshToken) {
+    if (incomingRefreshToken !== user?.refresh_token) {
       throw new ApiError(401, "Refresh token is expired or used");
     }
 
     const options = {
       httpOnly: true,
-      secure: false, //false until HTTPS
+      secure: process.env.NODE_ENV === "production",
+      sameSite: "lax",
+      path: "/",
     };
 
     const { accessToken, refreshToken } = await generateAccessAndRefreshTokens(
@@ -226,6 +233,9 @@ export const refreshAccessToken = asyncHandler(async (req, res) => {
       .status(200)
       .cookie("accessToken", accessToken, options)
       .cookie("refreshToken", refreshToken, options)
+      // Remove stale copies an older server may have scoped to /api/users
+      .clearCookie("accessToken", { ...options, path: "/api/users" })
+      .clearCookie("refreshToken", { ...options, path: "/api/users" })
       .json(
         new ApiResponse(
           200,

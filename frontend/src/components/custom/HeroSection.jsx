@@ -1,5 +1,5 @@
 import { motion } from "framer-motion"
-import { Dumbbell, ArrowRight, Layers, TrendingUp, ShieldAlert, ChevronDown } from "lucide-react"
+import { Dumbbell, ArrowRight, Layers, TrendingUp, ShieldAlert, ChevronDown, LogOut } from "lucide-react"
 export default function HeroSection({ onOpenSignup, onOpenLogin, onLogout, onExploreClick, user }) {
   return (
     <div className="relative min-h-screen w-full bg-[#070605] overflow-hidden flex flex-col justify-between select-none">
@@ -63,21 +63,34 @@ export default function HeroSection({ onOpenSignup, onOpenLogin, onLogout, onExp
           >
             How it works
           </button>
-          <button
-            type="button"
-            onClick={onOpenLogin}
-            className="hover:text-white transition-colors cursor-pointer font-medium text-sm px-1 py-1"
-          >
-            Log in
-          </button>
+          {user ? (
+            <button
+              type="button"
+              onClick={onLogout}
+              className="inline-flex items-center gap-2 hover:text-white transition-colors cursor-pointer font-medium text-sm px-2 py-1 text-zinc-300"
+            >
+              <LogOut className="w-4 h-4" />
+              Log out
+            </button>
+          ) : (
+            <>
+              <button
+                type="button"
+                onClick={onOpenLogin}
+                className="hover:text-white transition-colors cursor-pointer font-medium text-sm px-1 py-1"
+              >
+                Log in
+              </button>
 
-          <button
-            type="button"
-            onClick={onOpenSignup}
-            className="bg-[#f95716] hover:bg-[#ea4808] active:scale-95 text-white text-sm font-semibold px-5 py-2.5 rounded-full transition-all shadow-[0_4px_16px_rgba(249,87,22,0.35)] hover:shadow-[0_6px_22px_rgba(249,87,22,0.5)] cursor-pointer"
-          >
-            Get started
-          </button>
+              <button
+                type="button"
+                onClick={onOpenSignup}
+                className="bg-[#f95716] hover:bg-[#ea4808] active:scale-95 text-white text-sm font-semibold px-5 py-2.5 rounded-full transition-all shadow-[0_4px_16px_rgba(249,87,22,0.35)] hover:shadow-[0_6px_22px_rgba(249,87,22,0.5)] cursor-pointer"
+              >
+                Get started
+              </button>
+            </>
+          )}
         </nav>
       </header>
 
