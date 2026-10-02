@@ -1,53 +1,57 @@
 import { motion } from "framer-motion"
-import { ArrowDown, Dumbbell, ClipboardList, LogOut, ShieldAlert, TrendingUp } from "lucide-react"
-
-const TRUST_STATS = [
-  { icon: ClipboardList, value: "Templates", label: "Reusable programs" },
-  { icon: TrendingUp, value: "Auto PRs", label: "Tracked per exercise" },
-  { icon: ShieldAlert, value: "Injury flags", label: "Unsafe lifts blocked" },
-]
-
+import { Dumbbell, ArrowRight, Layers, TrendingUp, ShieldAlert, ChevronDown } from "lucide-react"
 export default function HeroSection({ onOpenSignup, onOpenLogin, onLogout, onExploreClick, user }) {
   return (
-    <div className="relative min-h-screen w-full overflow-hidden fitcoach-gradient-bg flex flex-col justify-between select-none">
-      {/* Film Grain Texture Overlay */}
-      <div className="absolute inset-0 noise-texture pointer-events-none z-10" />
+    <div className="relative min-h-screen w-full bg-[#070605] overflow-hidden flex flex-col justify-between select-none">
+      {/* 1. CBUM Background Layer with tuned opacity and cinematic gradients */}
+      <div className="absolute inset-0 pointer-events-none overflow-hidden z-0">
+        {/* Background photo of CBUM */}
+        <img
+          src="/hero.png"
+          alt="FitCoach Hero Background"
+          className="w-full h-full object-cover object-[78%_center] lg:object-[68%_center] xl:object-[64%_center] opacity-45 md:opacity-55 scale-100 transition-opacity duration-700"
+        />
 
-      {/* Top Navigation Bar */}
-      <header className="relative z-20 w-full px-6 md:px-12 py-5 flex items-center justify-between">
-        {/* Logo */}
+        {/* Cinematic dark gradients to guarantee text legibility and mood */}
+        {/* Horizontal vignette: deep dark on the left covering the text column */}
+        <div className="absolute inset-0 bg-gradient-to-r from-[#070605] via-[#070605]/85 md:via-[#070605]/75 to-transparent w-full md:w-[75%]" />
+
+        {/* Subtle top-down fade for navbar integration */}
+        <div className="absolute inset-x-0 top-0 h-40 bg-gradient-to-b from-[#070605]/90 via-[#070605]/40 to-transparent" />
+
+        {/* Bottom fade into subsequent content */}
+        <div className="absolute inset-x-0 bottom-0 h-44 bg-gradient-to-t from-[#070605] via-[#070605]/80 to-transparent" />
+
+        {/* Atmospheric warm orange/amber rim glow behind right side */}
+        <div className="absolute -right-24 bottom-10 w-[550px] h-[550px] bg-orange-600/15 blur-[140px] rounded-full pointer-events-none" />
+        <div className="absolute -left-20 top-1/4 w-[420px] h-[420px] bg-orange-700/10 blur-[130px] rounded-full pointer-events-none" />
+
+
+        {/* Film Grain Texture Overlay */}
+        <div className="absolute inset-0 noise-texture pointer-events-none opacity-25" />
+      </div>
+
+      {/* 2. Top Navigation Bar */}
+      <header className="relative z-20 w-full px-6 md:px-14 lg:px-20 py-6 flex items-center justify-between">
+        {/* Brand Logo */}
         <div
           onClick={onExploreClick}
-          className="flex items-center gap-2 cursor-pointer group transition-transform active:scale-95"
+          className="flex items-center gap-2.5 cursor-pointer group transition-transform active:scale-95"
         >
-          <div className="w-8 h-8 flex items-center justify-center">
-            <svg viewBox="0 0 28 28" fill="none" xmlns="http://www.w3.org/2000/svg" className="w-7 h-7 text-orange-500 transform group-hover:rotate-6 transition-transform">
-              <path
-                d="M4 14C4 8.47715 8.47715 4 14 4C19.5228 4 24 8.47715 24 14C24 19.5228 19.5228 24 14 24"
-                stroke="currentColor"
-                strokeWidth="4"
-                strokeLinecap="round"
-              />
-              <path
-                d="M8 14H20M14 8L20 14L14 20"
-                stroke="currentColor"
-                strokeWidth="3.5"
-                strokeLinecap="round"
-                strokeLinejoin="round"
-              />
-            </svg>
+          <div className="w-8 h-8 rounded-full bg-orange-500/20 border border-orange-500/40 flex items-center justify-center text-orange-500 group-hover:scale-105 transition-transform shadow-[0_0_12px_rgba(249,115,22,0.35)]">
+            <Dumbbell className="w-4 h-4 stroke-[2.5]" />
           </div>
-          <span className="font-extrabold text-2xl tracking-tight text-white">
+          <span className="font-extrabold text-2xl tracking-tight text-white font-sans">
             FitCoach
           </span>
         </div>
 
         {/* Navigation Items */}
-        <nav className="flex items-center gap-4 sm:gap-7 text-sm font-semibold text-slate-200">
+        <nav className="flex items-center gap-5 sm:gap-8 text-sm font-medium text-zinc-300">
           <button
             type="button"
             onClick={onExploreClick}
-            className="hidden md:block hover:text-white transition-colors cursor-pointer"
+            className="hidden md:block hover:text-white transition-colors cursor-pointer text-sm"
           >
             For Trainers
           </button>
@@ -55,190 +59,152 @@ export default function HeroSection({ onOpenSignup, onOpenLogin, onLogout, onExp
           <button
             type="button"
             onClick={onExploreClick}
-            className="hidden sm:block hover:text-white transition-colors cursor-pointer"
+            className="hidden sm:block hover:text-white transition-colors cursor-pointer text-sm"
           >
             How it works
           </button>
+          <button
+            type="button"
+            onClick={onOpenLogin}
+            className="hover:text-white transition-colors cursor-pointer font-medium text-sm px-1 py-1"
+          >
+            Log in
+          </button>
 
-          {user ? (
-            <button
-              type="button"
-              onClick={onLogout}
-              className="inline-flex items-center gap-2 hover:text-white transition-colors cursor-pointer font-bold px-2 py-1"
-            >
-              <LogOut className="w-4 h-4" />
-              Log out
-            </button>
-          ) : (
-            <>
-              <button
-                type="button"
-                onClick={onOpenLogin}
-                className="hover:text-white transition-colors cursor-pointer font-bold px-2 py-1"
-              >
-                Log in
-              </button>
-
-              <button
-                type="button"
-                onClick={onOpenSignup}
-                className="cta-gradient-btn text-white text-sm font-semibold px-5 py-2.5 rounded-full hover:opacity-90 active:scale-95 transition-all shadow-md cursor-pointer"
-              >
-                Get started
-              </button>
-            </>
-          )}
+          <button
+            type="button"
+            onClick={onOpenSignup}
+            className="bg-[#f95716] hover:bg-[#ea4808] active:scale-95 text-white text-sm font-semibold px-5 py-2.5 rounded-full transition-all shadow-[0_4px_16px_rgba(249,87,22,0.35)] hover:shadow-[0_6px_22px_rgba(249,87,22,0.5)] cursor-pointer"
+          >
+            Get started
+          </button>
         </nav>
       </header>
 
-      {/* Main Hero Content */}
-      <main className="relative z-20 flex-1 flex flex-col justify-center max-w-7xl mx-auto w-full px-6 md:px-12 py-8">
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-center">
-          {/* Left Column: headline + subtitle + CTAs */}
-          <div className="lg:col-span-6 flex flex-col items-start z-30">
-            <motion.h1
-              initial={{ opacity: 0, x: -30 }}
-              animate={{ opacity: 1, x: 0 }}
-              transition={{ duration: 0.8, ease: "easeOut" }}
-              className="hero-display-title text-white text-5xl sm:text-6xl md:text-7xl lg:text-[88px] leading-[0.95] drop-shadow-[0_8px_24px_rgba(0,0,0,0.45)] tracking-tighter"
+      {/* 3. Main Hero Content (Left-aligned, spacious & minimal) */}
+      <main className="relative z-20 flex-1 flex flex-col justify-center w-full px-6 md:px-14 lg:px-20 py-8 lg:py-12">
+        <div className="max-w-xl lg:max-w-2xl flex flex-col items-start">
+          {/* Eyebrow badge: Dash + Uppercase tag */}
+          <motion.div
+            initial={{ opacity: 0, y: -10 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.6, ease: "easeOut" }}
+            className="flex items-center gap-3 mb-5"
+          >
+            <span className="w-5 h-[2px] bg-[#f95716]" />
+            <span className="text-[11px] sm:text-xs tracking-[0.22em] font-semibold text-zinc-400 uppercase">
+              Train smarter. Coach better.
+            </span>
+          </motion.div>
+
+          {/* Headline: Huge bold typography */}
+          <motion.h1
+            initial={{ opacity: 0, x: -24 }}
+            animate={{ opacity: 1, x: 0 }}
+            transition={{ duration: 0.8, ease: "easeOut" }}
+            className="hero-display-title text-white text-5xl sm:text-7xl lg:text-[84px] xl:text-[94px] leading-[0.92] drop-shadow-[0_10px_30px_rgba(0,0,0,0.8)] tracking-tight font-black"
+          >
+            COACH
+            <br />
+            EVERY
+            <br />
+            <span className="text-[#f95716]">REP</span>
+          </motion.h1>
+
+          {/* Subtitle */}
+          <motion.p
+            initial={{ opacity: 0, y: 16 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.7, delay: 0.2 }}
+            className="mt-6 text-zinc-300/90 font-normal text-sm sm:text-base md:text-[17px] max-w-lg leading-relaxed"
+          >
+            The workout tracker built around the trainer-client relationship.
+            Build programs, assign them, and watch real progress and injury risk — without chasing anyone on WhatsApp.
+          </motion.p>
+
+          {/* Action CTAs */}
+          <motion.div
+            initial={{ opacity: 0, y: 16 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.7, delay: 0.35 }}
+            className="mt-8 flex flex-row items-center gap-4 w-full sm:w-auto"
+          >
+            {/* Primary Trainer CTA */}
+            <button
+              type="button"
+              onClick={onOpenSignup}
+              className="bg-[#f95716] hover:bg-[#ea4808] text-white text-sm sm:text-base font-semibold px-6 sm:px-7 py-3.5 rounded-full shadow-[0_6px_22px_rgba(249,87,22,0.4)] hover:shadow-[0_8px_30px_rgba(249,87,22,0.6)] active:scale-95 transition-all flex items-center justify-center gap-2.5 cursor-pointer group"
             >
-              COACH
-              <br />
-              EVERY
-              <br />
-              <span className="text-orange-500">REP</span>
-            </motion.h1>
+              <Dumbbell className="w-4 h-4 text-white" />
+              <span>I'm a trainer</span>
+              <ArrowRight className="w-4 h-4 transition-transform group-hover:translate-x-1" />
+            </button>
 
-            <motion.p
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.8, delay: 0.2 }}
-              className="mt-6 text-slate-300 font-medium text-base sm:text-lg max-w-md leading-relaxed"
+            {/* Secondary Member CTA */}
+            <button
+              type="button"
+              onClick={onOpenSignup}
+              className="bg-zinc-900/50 hover:bg-zinc-800/80 border border-zinc-700/70 hover:border-zinc-500 text-white text-sm sm:text-base font-semibold px-6 sm:px-7 py-3.5 rounded-full backdrop-blur-sm active:scale-95 transition-all flex items-center justify-center cursor-pointer"
             >
-              The workout tracker built around the trainer-client relationship.
-              Build programs, assign them, and watch real progress and injury risk — without chasing anyone on WhatsApp.
-            </motion.p>
+              Join as a member
+            </button>
+          </motion.div>
 
-            {/* CTA Buttons */}
-            <motion.div
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.8, delay: 0.35 }}
-              className="mt-8 flex flex-col sm:flex-row gap-3.5 w-full sm:w-auto"
-            >
-              <button
-                type="button"
-                onClick={onOpenSignup}
-                className="cta-gradient-btn text-white text-base font-semibold px-7 py-3.5 rounded-full active:scale-95 transition-all shadow-lg flex items-center justify-center gap-2 cursor-pointer"
-              >
-                <Dumbbell className="w-4 h-4" />
-                <span>I'm a trainer</span>
-              </button>
+          {/* Trust stats & proof points */}
+          <motion.div
+            initial={{ opacity: 0, y: 16 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.7, delay: 0.5 }}
+            className="mt-12 flex flex-col sm:flex-row sm:flex-wrap items-start gap-x-8 gap-y-3.5 text-xs sm:text-sm"
+          >
+            {/* Templates */}
+            <div className="flex items-center gap-2">
+              <span className="p-1.5 rounded-md bg-orange-500/15 border border-orange-500/25 text-orange-500">
+                <Layers className="w-3.5 h-3.5" />
+              </span>
+              <span>
+                <strong className="text-white font-semibold">Templates</strong>{" "}
+                <span className="text-zinc-400">· Reusable programs</span>
+              </span>
+            </div>
 
-              <button
-                type="button"
-                onClick={onOpenSignup}
-                className="border border-slate-500/70 text-white text-base font-semibold px-7 py-3.5 rounded-full hover:bg-white/10 active:scale-95 transition-all flex items-center justify-center cursor-pointer"
-              >
-                Join as a member
-              </button>
-            </motion.div>
+            {/* Auto PRs */}
+            <div className="flex items-center gap-2">
+              <span className="p-1.5 rounded-md bg-orange-500/15 border border-orange-500/25 text-orange-500">
+                <TrendingUp className="w-3.5 h-3.5" />
+              </span>
+              <span>
+                <strong className="text-white font-semibold">Auto PRs</strong>{" "}
+                <span className="text-zinc-400">· Tracked per exercise</span>
+              </span>
+            </div>
 
-            {/* Capability proof points */}
-            <motion.ul
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.8, delay: 0.5 }}
-              className="mt-10 flex flex-wrap gap-x-8 gap-y-4"
-            >
-              {TRUST_STATS.map(({ icon: Icon, value, label }) => (
-                <li key={value} className="flex items-center gap-2.5">
-                  <Icon className="w-5 h-5 text-orange-500 shrink-0" />
-                  <span className="text-sm">
-                    <span className="font-bold text-white">{value}</span>
-                    <span className="text-slate-400"> · {label}</span>
-                  </span>
-                </li>
-              ))}
-            </motion.ul>
-          </div>
-
-          {/* Right Column: Session Logging Card */}
-          <div className="lg:col-span-6 relative flex justify-center lg:justify-end items-center mt-6 lg:mt-0">
-            <motion.div
-              initial={{ opacity: 0, scale: 0.92, y: 30 }}
-              animate={{ opacity: 1, scale: 1, y: 0 }}
-              transition={{ duration: 0.9, ease: [0.16, 1, 0.3, 1] }}
-              className="relative w-full max-w-[400px] rounded-[1.75rem] bg-slate-900/80 backdrop-blur-xl border border-slate-700/60 shadow-[0_25px_50px_-12px_rgba(0,0,0,0.6)] overflow-hidden"
-            >
-              {/* Card header */}
-              <div className="flex items-center justify-between px-5 py-4 border-b border-slate-700/60">
-                <div>
-                  <p className="text-xs font-medium text-slate-400">Week 6 · Day 2</p>
-                  <h3 className="text-sm font-bold text-white">Push Day A</h3>
-                </div>
-                <span className="text-[11px] font-semibold text-emerald-400 bg-emerald-500/15 border border-emerald-500/30 px-2.5 py-1 rounded-lg">
-                  On track
-                </span>
-              </div>
-
-              {/* Logged sets */}
-              <ul className="divide-y divide-slate-800">
-                {[
-                  { name: "Bench Press", sets: "4 × 8", load: "72.5 kg", done: true },
-                  { name: "Incline DB Press", sets: "3 × 10", load: "26 kg", done: true },
-                  { name: "Cable Fly", sets: "3 × 12", load: "15 kg", done: false },
-                ].map((row) => (
-                  <li key={row.name} className="flex items-center justify-between px-5 py-3.5">
-                    <div className="min-w-0">
-                      <p className="text-sm font-semibold text-white truncate">{row.name}</p>
-                      <p className="text-xs text-slate-400 mt-0.5">{row.sets} @ {row.load} · RPE 8</p>
-                    </div>
-                    <span className={`text-[11px] font-semibold px-2.5 py-1 rounded-lg shrink-0 ml-3 ${
-                      row.done
-                        ? "bg-emerald-500/15 text-emerald-400 border border-emerald-500/30"
-                        : "bg-slate-800 text-slate-400 border border-slate-700"
-                    }`}>
-                      {row.done ? "Logged" : "Next"}
-                    </span>
-                  </li>
-                ))}
-              </ul>
-
-              {/* Injury warning */}
-              <div className="mx-5 mb-5 mt-4 flex items-start gap-2.5 rounded-xl bg-amber-500/10 border border-amber-500/30 px-3.5 py-3">
-                <ShieldAlert className="w-4 h-4 text-amber-400 shrink-0 mt-0.5" />
-                <p className="text-xs text-amber-100/90 leading-relaxed">
-                  <span className="font-bold text-amber-300">Shoulder flagged.</span> Incline press modified to neutral grip.
-                </p>
-              </div>
-            </motion.div>
-          </div>
+            {/* Injury flags */}
+            <div className="flex items-center gap-2 sm:basis-full">
+              <span className="p-1.5 rounded-md bg-orange-500/15 border border-orange-500/25 text-orange-500">
+                <ShieldAlert className="w-3.5 h-3.5" />
+              </span>
+              <span>
+                <strong className="text-white font-semibold">Injury flags</strong>{" "}
+                <span className="text-zinc-400">· Unsafe lifts blocked</span>
+              </span>
+            </div>
+          </motion.div>
         </div>
       </main>
 
-      {/* Footer / Bottom UI elements */}
-      <footer className="relative z-20 w-full px-6 md:px-12 py-6 flex items-center justify-between">
-        {/* Animated Down Arrow */}
-        <motion.button
+      {/* 4. Minimal Bottom Scroll Indicator */}
+      <div className="relative z-20 w-full px-6 md:px-14 lg:px-20 py-4 flex items-center justify-between pointer-events-none">
+        <button
+          type="button"
           onClick={onExploreClick}
-          aria-label="Scroll down to see features"
-          animate={{ y: [0, 8, 0] }}
-          transition={{ duration: 1.8, repeat: Infinity, ease: "easeInOut" }}
-          className="p-2 rounded-full hover:bg-white/10 active:scale-90 transition-all cursor-pointer"
+          aria-label="Scroll down to explore features"
+          className="pointer-events-auto p-1.5 rounded-full text-zinc-500 hover:text-zinc-300 hover:bg-white/5 active:scale-90 transition-all cursor-pointer flex items-center gap-1.5 text-xs font-medium"
         >
-          <ArrowDown className="w-6 h-6 text-slate-300 stroke-[2.5]" />
-        </motion.button>
-
-        <motion.button
-          onClick={onOpenSignup}
-          whileHover={{ scale: 1.1 }}
-          whileTap={{ scale: 0.95 }}
-          className="cta-gradient-btn text-white rounded-full flex items-center justify-center px-5 py-3 text-sm font-semibold shadow-xl cursor-pointer"
-        >
-          Start coaching free
-        </motion.button>
-      </footer>
+          <ChevronDown className="w-4 h-4 animate-bounce" />
+          <span className="hidden sm:inline text-zinc-500">Explore FitCoach</span>
+        </button>
+      </div>
     </div>
   )
 }

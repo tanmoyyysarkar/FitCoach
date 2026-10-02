@@ -163,17 +163,18 @@ export const loginUser = asyncHandler(async (req, res) => {
 });
 
 export const logoutUser = asyncHandler(async (req, res) => {
+  const user_id = req.user.user_id;
   await pool.query(
     `
     UPDATE users
     SET refresh_token = NULL
     WHERE user_id = $1
     `,
-    [user.user_id],
+    [user_id],
   );
   const options = {
     httpOnly: true,
-    secure: false,//false until HTTPS
+    secure: false, //false until HTTPS
   };
 
   return res
@@ -214,11 +215,12 @@ export const refreshAccessToken = asyncHandler(async (req, res) => {
 
     const options = {
       httpOnly: true,
-      secure: false,//false until HTTPS
+      secure: false, //false until HTTPS
     };
 
-    const { accessToken, refreshToken } =
-      await generateAccessAndRefreshTokens(user.user_id);
+    const { accessToken, refreshToken } = await generateAccessAndRefreshTokens(
+      user.user_id,
+    );
 
     return res
       .status(200)
@@ -233,5 +235,23 @@ export const refreshAccessToken = asyncHandler(async (req, res) => {
       );
   } catch (error) {
     throw new ApiError(401, error?.message || "Invalid refresh token");
+  }
+});
+
+export const getUser = asyncHandler(async (req, res) => {
+  const user_id = req.user.user_id;
+
+  try {
+    const {
+      rows: [user],
+    } = await pool.query("SELECT user_id,email,name,role,date_of_birth,gender,height FROM users WHERE user_id = $1", [
+      user_id,
+    ]);
+    return res.status(200).json( new ApiResponse(200,user))
+  } catch (error) {
+    console.error(error);
+    throw new Error(
+      "Something went wrong while generating access and refresh tokens",
+    );
   }
 });
