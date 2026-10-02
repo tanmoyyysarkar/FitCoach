@@ -1,10 +1,23 @@
-import { useState } from "react"
-import { motion, AnimatePresence } from "framer-motion"
-import { ArrowLeft, ArrowRight, Check, Loader2, Mail, Lock, Dumbbell, UserRound, Eye, EyeOff, Calendar, Ruler } from "lucide-react"
-import confetti from "canvas-confetti"
-import api from "@/api/axios"
+import { useState } from "react";
+import { motion, AnimatePresence } from "framer-motion";
+import {
+  ArrowLeft,
+  ArrowRight,
+  Check,
+  Loader2,
+  Mail,
+  Lock,
+  Dumbbell,
+  UserRound,
+  Eye,
+  EyeOff,
+  Calendar,
+  Ruler,
+} from "lucide-react";
+import confetti from "canvas-confetti";
+import api from "@/api/axios";
 
-const TOTAL_STEPS = 4
+const TOTAL_STEPS = 4;
 
 const slideVariants = {
   enter: (direction) => ({
@@ -19,12 +32,16 @@ const slideVariants = {
     x: direction < 0 ? 50 : -50,
     opacity: 0,
   }),
-}
+};
 
-export default function SignupScreen({ onNavigateLogin, onSignupSuccess, onNavigateHome }) {
-  const [step, setStep] = useState(1)
-  const [direction, setDirection] = useState(1) // 1 = forward, -1 = backward
-  const [showPassword, setShowPassword] = useState(false)
+export default function SignupScreen({
+  onNavigateLogin,
+  onSignupSuccess,
+  onNavigateHome,
+}) {
+  const [step, setStep] = useState(1);
+  const [direction, setDirection] = useState(1); // 1 = forward, -1 = backward
+  const [showPassword, setShowPassword] = useState(false);
 
   const [formData, setFormData] = useState({
     email: "",
@@ -34,67 +51,67 @@ export default function SignupScreen({ onNavigateLogin, onSignupSuccess, onNavig
     gender: "prefer-not-to-say",
     height: "",
     date_of_birth: "",
-  })
+  });
 
-  const [loading, setLoading] = useState(false)
-  const [error, setError] = useState("")
-  const [success, setSuccess] = useState("")
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState("");
+  const [success, setSuccess] = useState("");
 
   const updateFields = (fields) => {
-    setFormData((prev) => ({ ...prev, ...fields }))
-    if (error) setError("")
-  }
+    setFormData((prev) => ({ ...prev, ...fields }));
+    if (error) setError("");
+  };
 
   const handleNextStep = (e) => {
-    e?.preventDefault()
-    setError("")
+    e?.preventDefault();
+    setError("");
 
     // Step 1 validation: Email & Password
     if (step === 1) {
       if (!formData.email.trim()) {
-        setError("Please enter your email address")
-        return
+        setError("Please enter your email address");
+        return;
       }
-      const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
+      const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
       if (!emailRegex.test(formData.email.trim())) {
-        setError("Please enter a valid email address")
-        return
+        setError("Please enter a valid email address");
+        return;
       }
       if (!formData.password || formData.password.length < 6) {
-        setError("Password must be at least 6 characters")
-        return
+        setError("Password must be at least 6 characters");
+        return;
       }
     }
 
     // Step 2 validation: Name
     if (step === 2) {
       if (!formData.fullName.trim()) {
-        setError("Please enter your full name")
-        return
+        setError("Please enter your full name");
+        return;
       }
     }
 
     // Step 3: Role is selected (defaulted to client)
 
     if (step < TOTAL_STEPS) {
-      setDirection(1)
-      setStep((prev) => prev + 1)
+      setDirection(1);
+      setStep((prev) => prev + 1);
     } else {
-      handleSignupSubmit()
+      handleSignupSubmit();
     }
-  }
+  };
 
   const handlePrevStep = () => {
     if (step > 1) {
-      setError("")
-      setDirection(-1)
-      setStep((prev) => prev - 1)
+      setError("");
+      setDirection(-1);
+      setStep((prev) => prev - 1);
     }
-  }
+  };
 
   const handleSignupSubmit = async () => {
-    setLoading(true)
-    setError("")
+    setLoading(true);
+    setError("");
 
     const payload = {
       fullName: formData.fullName.trim(),
@@ -104,47 +121,47 @@ export default function SignupScreen({ onNavigateLogin, onSignupSuccess, onNavig
       gender: formData.gender === "prefer-not-to-say" ? null : formData.gender,
       height: formData.height ? Number(formData.height) : null,
       date_of_birth: formData.date_of_birth || null,
-    }
+    };
 
     try {
       const res = await api.post("/users/register", payload, {
-        withCredentials: true
-      })
-      const data = res.data
+        withCredentials: true,
+      });
+      const data = res.data;
 
       confetti({
         particleCount: 100,
         spread: 70,
         origin: { y: 0.6 },
         colors: ["#f97316", "#fb923c", "#ea580c", "#22c55e"],
-      })
+      });
 
-      setSuccess("Account created successfully!")
+      setSuccess("Account created successfully!");
       const userData = data.data || {
         name: formData.fullName,
         email: formData.email,
         role: formData.role,
-      }
+      };
       // Register doesn't set auth cookies, so log in with the same
       // credentials to establish a real session that survives refresh.
       try {
         await api.post("/users/login", {
           email: payload.email,
           password: formData.password,
-        })
+        });
       } catch {
-        setError("Account created. Please log in.")
-        setTimeout(() => onNavigateLogin?.(), 1200)
-        return
+        setError("Account created. Please log in.");
+        setTimeout(() => onNavigateLogin?.(), 1200);
+        return;
       }
       setTimeout(() => {
-        if (onSignupSuccess) onSignupSuccess(userData)
-      }, 900)
+        if (onSignupSuccess) onSignupSuccess(userData);
+      }, 900);
     } catch (err) {
       const isNetworkErr =
         err.message?.includes("Network Error") ||
         err.code === "ERR_NETWORK" ||
-        err.message?.includes("Failed to fetch")
+        err.message?.includes("Failed to fetch");
 
       if (isNetworkErr) {
         confetti({
@@ -152,23 +169,27 @@ export default function SignupScreen({ onNavigateLogin, onSignupSuccess, onNavig
           spread: 60,
           origin: { y: 0.6 },
           colors: ["#f97316", "#fb923c", "#ea580c"],
-        })
-        setSuccess("Welcome to FitCoach!")
+        });
+        setSuccess("Welcome to FitCoach!");
         const mockUser = {
           name: formData.fullName,
           email: formData.email,
           role: formData.role,
-        }
+        };
         setTimeout(() => {
-          if (onSignupSuccess) onSignupSuccess(mockUser)
-        }, 900)
+          if (onSignupSuccess) onSignupSuccess(mockUser);
+        }, 900);
       } else {
-        setError(err.response?.data?.message || err.message || "Failed to create account")
+        setError(
+          err.response?.data?.message ||
+            err.message ||
+            "Failed to create account",
+        );
       }
     } finally {
-      setLoading(false)
+      setLoading(false);
     }
-  }
+  };
 
   return (
     <div className="min-h-screen fitcoach-gradient-bg flex flex-col justify-center items-center p-4 sm:p-6 relative select-none">
@@ -194,8 +215,8 @@ export default function SignupScreen({ onNavigateLogin, onSignupSuccess, onNavig
                 s === step
                   ? "w-5 bg-orange-500 shadow-[0_0_8px_rgba(249,115,22,0.8)]"
                   : s < step
-                  ? "w-2 bg-orange-400/60"
-                  : "w-1.5 bg-white/20"
+                    ? "w-2 bg-orange-400/60"
+                    : "w-1.5 bg-white/20"
               }`}
             />
           ))}
@@ -215,7 +236,12 @@ export default function SignupScreen({ onNavigateLogin, onSignupSuccess, onNavig
             onClick={onNavigateHome}
             className="w-10 h-10 flex items-center justify-center mb-2 cursor-pointer hover:scale-105 transition-transform"
           >
-            <svg viewBox="0 0 28 28" fill="none" xmlns="http://www.w3.org/2000/svg" className="w-9 h-9 text-orange-500">
+            <svg
+              viewBox="0 0 28 28"
+              fill="none"
+              xmlns="http://www.w3.org/2000/svg"
+              className="w-9 h-9 text-orange-500"
+            >
               <path
                 d="M4 14C4 8.47715 8.47715 4 14 4C19.5228 4 24 8.47715 24 14C24 19.5228 19.5228 24 14 24"
                 stroke="currentColor"
@@ -289,7 +315,9 @@ export default function SignupScreen({ onNavigateLogin, onSignupSuccess, onNavig
                       <input
                         type="email"
                         value={formData.email}
-                        onChange={(e) => updateFields({ email: e.target.value })}
+                        onChange={(e) =>
+                          updateFields({ email: e.target.value })
+                        }
                         placeholder="name@example.com"
                         className="w-full h-12 pl-10 pr-4 bg-neutral-100 rounded-xl text-sm outline-none focus:bg-white border border-transparent focus:border-neutral-300 transition-all text-neutral-900 placeholder:text-neutral-400"
                         autoFocus
@@ -306,7 +334,9 @@ export default function SignupScreen({ onNavigateLogin, onSignupSuccess, onNavig
                       <input
                         type={showPassword ? "text" : "password"}
                         value={formData.password}
-                        onChange={(e) => updateFields({ password: e.target.value })}
+                        onChange={(e) =>
+                          updateFields({ password: e.target.value })
+                        }
                         placeholder="At least 6 characters"
                         className="w-full h-12 pl-10 pr-10 bg-neutral-100 rounded-xl text-sm outline-none focus:bg-white border border-transparent focus:border-neutral-300 transition-all text-neutral-900 placeholder:text-neutral-400"
                       />
@@ -316,7 +346,11 @@ export default function SignupScreen({ onNavigateLogin, onSignupSuccess, onNavig
                         onClick={() => setShowPassword(!showPassword)}
                         className="absolute right-3 top-1/2 -translate-y-1/2 text-neutral-400 hover:text-neutral-700 cursor-pointer p-1"
                       >
-                        {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                        {showPassword ? (
+                          <EyeOff className="w-4 h-4" />
+                        ) : (
+                          <Eye className="w-4 h-4" />
+                        )}
                       </button>
                     </div>
                   </div>
@@ -352,7 +386,9 @@ export default function SignupScreen({ onNavigateLogin, onSignupSuccess, onNavig
                       <input
                         type="text"
                         value={formData.fullName}
-                        onChange={(e) => updateFields({ fullName: e.target.value })}
+                        onChange={(e) =>
+                          updateFields({ fullName: e.target.value })
+                        }
                         placeholder="e.g. Alex Morgan"
                         className="w-full h-12 pl-10 pr-4 bg-neutral-100 rounded-xl text-sm outline-none focus:bg-white border border-transparent focus:border-neutral-300 transition-all text-neutral-900 placeholder:text-neutral-400"
                         autoFocus
@@ -395,12 +431,18 @@ export default function SignupScreen({ onNavigateLogin, onSignupSuccess, onNavig
                       }`}
                     >
                       <div className="flex items-center gap-3">
-                        <div className={`p-2 rounded-xl ${formData.role === "client" ? "bg-orange-500 text-white" : "bg-neutral-200 text-neutral-700"}`}>
+                        <div
+                          className={`p-2 rounded-xl ${formData.role === "client" ? "bg-orange-500 text-white" : "bg-neutral-200 text-neutral-700"}`}
+                        >
                           <UserRound className="w-4 h-4" />
                         </div>
                         <div className="text-left">
-                          <div className="font-semibold text-sm">Gym Member</div>
-                          <div className={`text-[11px] ${formData.role === "client" ? "text-neutral-300" : "text-neutral-500"}`}>
+                          <div className="font-semibold text-sm">
+                            Gym Member
+                          </div>
+                          <div
+                            className={`text-[11px] ${formData.role === "client" ? "text-neutral-300" : "text-neutral-500"}`}
+                          >
                             Track workouts & follow assigned routines
                           </div>
                         </div>
@@ -417,12 +459,18 @@ export default function SignupScreen({ onNavigateLogin, onSignupSuccess, onNavig
                       }`}
                     >
                       <div className="flex items-center gap-3">
-                        <div className={`p-2 rounded-xl ${formData.role === "trainer" ? "bg-orange-500 text-white" : "bg-neutral-200 text-neutral-700"}`}>
+                        <div
+                          className={`p-2 rounded-xl ${formData.role === "trainer" ? "bg-orange-500 text-white" : "bg-neutral-200 text-neutral-700"}`}
+                        >
                           <Dumbbell className="w-4 h-4" />
                         </div>
                         <div className="text-left">
-                          <div className="font-semibold text-sm">Personal Trainer</div>
-                          <div className={`text-[11px] ${formData.role === "trainer" ? "text-neutral-300" : "text-neutral-500"}`}>
+                          <div className="font-semibold text-sm">
+                            Personal Trainer
+                          </div>
+                          <div
+                            className={`text-[11px] ${formData.role === "trainer" ? "text-neutral-300" : "text-neutral-500"}`}
+                          >
                             Coach clients, build programs & track PRs
                           </div>
                         </div>
@@ -460,10 +508,14 @@ export default function SignupScreen({ onNavigateLogin, onSignupSuccess, onNavig
                       </label>
                       <select
                         value={formData.gender}
-                        onChange={(e) => updateFields({ gender: e.target.value })}
+                        onChange={(e) =>
+                          updateFields({ gender: e.target.value })
+                        }
                         className="w-full h-11 px-3 bg-neutral-100 rounded-xl text-xs outline-none border border-transparent focus:border-neutral-300 text-neutral-800 cursor-pointer"
                       >
-                        <option value="prefer-not-to-say">Prefer not to say</option>
+                        <option value="prefer-not-to-say">
+                          Prefer not to say
+                        </option>
                         <option value="male">Male</option>
                         <option value="female">Female</option>
                         <option value="other">Other</option>
@@ -478,7 +530,9 @@ export default function SignupScreen({ onNavigateLogin, onSignupSuccess, onNavig
                         <input
                           type="number"
                           value={formData.height}
-                          onChange={(e) => updateFields({ height: e.target.value })}
+                          onChange={(e) =>
+                            updateFields({ height: e.target.value })
+                          }
                           placeholder="e.g. 175"
                           className="w-full h-11 pl-8 pr-3 bg-neutral-100 rounded-xl text-xs outline-none border border-transparent focus:border-neutral-300 text-neutral-900 placeholder:text-neutral-400"
                         />
@@ -495,7 +549,9 @@ export default function SignupScreen({ onNavigateLogin, onSignupSuccess, onNavig
                       <input
                         type="date"
                         value={formData.date_of_birth}
-                        onChange={(e) => updateFields({ date_of_birth: e.target.value })}
+                        onChange={(e) =>
+                          updateFields({ date_of_birth: e.target.value })
+                        }
                         className="w-full h-11 pl-8 pr-3 bg-neutral-100 rounded-xl text-xs outline-none border border-transparent focus:border-neutral-300 text-neutral-800 cursor-pointer"
                       />
                       <Calendar className="w-3.5 h-3.5 text-neutral-400 absolute left-2.5 top-1/2 -translate-y-1/2" />
@@ -528,7 +584,9 @@ export default function SignupScreen({ onNavigateLogin, onSignupSuccess, onNavig
                 <Loader2 className="w-5 h-5 animate-spin text-white" />
               ) : (
                 <>
-                  <span>{step === TOTAL_STEPS ? "Complete Setup" : "Continue"}</span>
+                  <span>
+                    {step === TOTAL_STEPS ? "Complete Setup" : "Continue"}
+                  </span>
                   {step < TOTAL_STEPS && <ArrowRight className="w-4 h-4" />}
                 </>
               )}
@@ -551,5 +609,5 @@ export default function SignupScreen({ onNavigateLogin, onSignupSuccess, onNavig
         </form>
       </motion.div>
     </div>
-  )
+  );
 }

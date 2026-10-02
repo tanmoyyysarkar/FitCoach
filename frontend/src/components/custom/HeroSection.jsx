@@ -14,17 +14,17 @@ export default function HeroSection({ onOpenSignup, onOpenLogin, onLogout, onExp
 
         {/* Cinematic dark gradients to guarantee text legibility and mood */}
         {/* Horizontal vignette: deep dark on the left covering the text column */}
-        <div className="absolute inset-0 bg-gradient-to-r from-[#070605] via-[#070605]/85 md:via-[#070605]/75 to-transparent w-full md:w-[75%]" />
+        <div className="absolute inset-0 bg-linear-to-r from-[#070605] via-[#070605]/85 md:via-[#070605]/75 to-transparent w-full md:w-[75%]" />
 
         {/* Subtle top-down fade for navbar integration */}
-        <div className="absolute inset-x-0 top-0 h-40 bg-gradient-to-b from-[#070605]/90 via-[#070605]/40 to-transparent" />
+        <div className="absolute inset-x-0 top-0 h-40 bg-linear-to-b from-[#070605]/90 via-[#070605]/40 to-transparent" />
 
         {/* Bottom fade into subsequent content */}
-        <div className="absolute inset-x-0 bottom-0 h-44 bg-gradient-to-t from-[#070605] via-[#070605]/80 to-transparent" />
+        <div className="absolute inset-x-0 bottom-0 h-44 bg-linear-to-t from-[#070605] via-[#070605]/80 to-transparent" />
 
         {/* Atmospheric warm orange/amber rim glow behind right side */}
-        <div className="absolute -right-24 bottom-10 w-[550px] h-[550px] bg-orange-600/15 blur-[140px] rounded-full pointer-events-none" />
-        <div className="absolute -left-20 top-1/4 w-[420px] h-[420px] bg-orange-700/10 blur-[130px] rounded-full pointer-events-none" />
+        <div className="absolute -right-24 bottom-10 w-137.5 h-137.5 bg-orange-600/15 blur-[140px] rounded-full pointer-events-none" />
+        <div className="absolute -left-20 top-1/4 w-105 h-105 bg-orange-700/10 blur-[130px] rounded-full pointer-events-none" />
 
 
         {/* Film Grain Texture Overlay */}
@@ -104,7 +104,7 @@ export default function HeroSection({ onOpenSignup, onOpenLogin, onLogout, onExp
             transition={{ duration: 0.6, ease: "easeOut" }}
             className="flex items-center gap-3 mb-5"
           >
-            <span className="w-5 h-[2px] bg-[#f95716]" />
+            <span className="w-5 h-0.5 bg-[#f95716]" />
             <span className="text-[11px] sm:text-xs tracking-[0.22em] font-semibold text-zinc-400 uppercase">
               Train smarter. Coach better.
             </span>

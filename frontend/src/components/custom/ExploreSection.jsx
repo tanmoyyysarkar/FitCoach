@@ -178,7 +178,7 @@ export default function ExploreSection({ onOpenSignup, user }) {
               onClick={() => setActiveTab("trainer")}
               className={`text-base font-bold pb-2 transition-all cursor-pointer relative ${
                 activeTab === "trainer"
-                  ? "text-white after:absolute after:bottom-[-2px] after:left-0 after:right-0 after:h-[2px] after:bg-white"
+                  ? "text-white after:absolute after:-bottom-0.5 after:left-0 after:right-0 after:h-0.5 after:bg-white"
                   : "text-neutral-500 hover:text-neutral-300"
               }`}
             >
@@ -189,7 +189,7 @@ export default function ExploreSection({ onOpenSignup, user }) {
               onClick={() => setActiveTab("client")}
               className={`text-base font-bold pb-2 transition-all cursor-pointer relative ${
                 activeTab === "client"
-                  ? "text-white after:absolute after:bottom-[-2px] after:left-0 after:right-0 after:h-[2px] after:bg-white"
+                  ? "text-white after:absolute after:-bottom-0.5 after:left-0 after:right-0 after:h-0.5 after:bg-white"
                   : "text-neutral-500 hover:text-neutral-300"
               }`}
             >

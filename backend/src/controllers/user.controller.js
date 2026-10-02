@@ -8,7 +8,7 @@ const generateAccessAndRefreshTokens = async (user_id) => {
   try {
     const {
       rows: [user],
-    } = await pool.query("SELECT user_id,email FROM users WHERE user_id = $1", [
+    } = await pool.query("SELECT user_id,email,role FROM users WHERE user_id = $1", [
       user_id,
     ]);
     if (!user) {
@@ -19,6 +19,7 @@ const generateAccessAndRefreshTokens = async (user_id) => {
       {
         user_id: user.user_id,
         email: user.email,
+        role: user.role,
       },
       process.env.ACCESS_TOKEN_SECRET,
       {
@@ -120,7 +121,7 @@ export const loginUser = asyncHandler(async (req, res) => {
   const {
     rows: [user],
   } = await pool.query(
-    "SELECT user_id,password_hash FROM users WHERE email = $1",
+    "SELECT user_id,password_hash,name,email,role,date_of_birth,gender,height,created_at FROM users WHERE email = $1",
     [normalizedEmail],
   );
 
@@ -153,7 +154,16 @@ export const loginUser = asyncHandler(async (req, res) => {
       new ApiResponse(
         200,
         {
-          user: user.user_id,
+          user: {
+            user_id: user.user_id,
+            name: user.name,
+            email: user.email,
+            role: user.role,
+            date_of_birth: user.date_of_birth,
+            gender: user.gender,
+            height: user.height,
+            created_at: user.created_at,
+          },
           accessToken,
           refreshToken,
         },

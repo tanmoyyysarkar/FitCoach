@@ -1,66 +1,68 @@
-import { useState } from "react"
-import { motion } from "framer-motion"
-import { Loader2, Mail, Lock, Check, ArrowLeft, Eye, EyeOff } from "lucide-react"
-import api from "@/api/axios"
+import { useState } from "react";
+import { motion } from "framer-motion";
+import {
+  Loader2,
+  Mail,
+  Lock,
+  Check,
+  ArrowLeft,
+  Eye,
+  EyeOff,
+} from "lucide-react";
+import api from "@/api/axios";
 
-export default function LoginScreen({ onNavigateSignup, onLoginSuccess, onNavigateHome }) {
-  const [email, setEmail] = useState("")
-  const [password, setPassword] = useState("")
-  const [showPassword, setShowPassword] = useState(false)
-  const [loading, setLoading] = useState(false)
-  const [error, setError] = useState("")
-  const [success, setSuccess] = useState("")
+export default function LoginScreen({
+  onNavigateSignup,
+  onLoginSuccess,
+  onNavigateHome,
+}) {
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [showPassword, setShowPassword] = useState(false);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState("");
+  const [success, setSuccess] = useState("");
 
   const handleLogin = async (e) => {
-    e.preventDefault()
+    e.preventDefault();
     if (!email.trim() || !password) {
-      setError("Please fill in both email and password")
-      return
+      setError("Please fill in both email and password");
+      return;
     }
 
-    setLoading(true)
-    setError("")
+    setLoading(true);
+    setError("");
 
     try {
-      const res = await api.post("/users/login", {
-        email: email.trim().toLowerCase(),
-        password,
-      },{
-        withCredentials: true
-      })
-
-      const data = res.data
-      const user = {
-        email: email.trim().toLowerCase(),
-        name: data.data?.fullName || email.split("@")[0],
-        token: data.data?.accessToken,
-        role: data.data?.role || "client",
-      }
-
-      setSuccess("Logged in successfully!")
-      setTimeout(() => {
-        if (onLoginSuccess) onLoginSuccess(user)
-      }, 700)
-    } catch (err) {
-      const isNetworkErr = err.message?.includes("Network Error") || err.code === "ERR_NETWORK" || err.message?.includes("Failed to fetch")
-      if (isNetworkErr) {
-        const mockUser = {
+      const res = await api.post(
+        "/users/login",
+        {
           email: email.trim().toLowerCase(),
-          name: email.split("@")[0],
-          role: "client",
-        }
-        localStorage.setItem("fitcoach_user", JSON.stringify(mockUser))
-        setSuccess("Welcome back!")
-        setTimeout(() => {
-          if (onLoginSuccess) onLoginSuccess(mockUser)
-        }, 700)
-      } else {
-        setError(err.response?.data?.message || err.message || "Invalid credentials")
+          password,
+        },
+        {
+          withCredentials: true,
+        },
+      );
+
+      const data = res.data;
+      const user = data.data?.user;
+      if (!user?.user_id || !user?.role) {
+        throw new Error("The server returned an incomplete user profile");
       }
+
+      setSuccess("Logged in successfully!");
+      setTimeout(() => {
+        if (onLoginSuccess) onLoginSuccess(user);
+      }, 700);
+    } catch (err) {
+      setError(
+        err.response?.data?.message || err.message || "Invalid credentials",
+      );
     } finally {
-      setLoading(false)
+      setLoading(false);
     }
-  }
+  };
 
   return (
     <div className="min-h-screen fitcoach-gradient-bg flex flex-col justify-center items-center p-4 sm:p-6 relative select-none">
@@ -68,7 +70,7 @@ export default function LoginScreen({ onNavigateSignup, onLoginSuccess, onNaviga
       <div className="absolute inset-0 noise-texture pointer-events-none" />
 
       {/* Top Bar / Back to Home */}
-      <div className="w-full max-w-[440px] mb-4 flex items-center justify-between z-20">
+      <div className="w-full max-w-110 mb-4 flex items-center justify-between z-20">
         <button
           type="button"
           onClick={onNavigateHome}
@@ -84,7 +86,7 @@ export default function LoginScreen({ onNavigateSignup, onLoginSuccess, onNaviga
         initial={{ opacity: 0, scale: 0.96, y: 15 }}
         animate={{ opacity: 1, scale: 1, y: 0 }}
         transition={{ duration: 0.35, ease: [0.16, 1, 0.3, 1] }}
-        className="relative z-10 w-full max-w-[440px] bg-white rounded-[2rem] shadow-2xl p-7 sm:p-8 border border-neutral-100 overflow-hidden"
+        className="relative z-10 w-full max-w-110 bg-white rounded-[2rem] shadow-2xl p-7 sm:p-8 border border-neutral-100 overflow-hidden"
       >
         {/* Brand Header */}
         <div className="flex flex-col items-center justify-center mb-6">
@@ -92,7 +94,12 @@ export default function LoginScreen({ onNavigateSignup, onLoginSuccess, onNaviga
             onClick={onNavigateHome}
             className="w-11 h-11 flex items-center justify-center mb-2.5 cursor-pointer hover:scale-105 transition-transform"
           >
-            <svg viewBox="0 0 28 28" fill="none" xmlns="http://www.w3.org/2000/svg" className="w-10 h-10 text-orange-500">
+            <svg
+              viewBox="0 0 28 28"
+              fill="none"
+              xmlns="http://www.w3.org/2000/svg"
+              className="w-10 h-10 text-orange-500"
+            >
               <path
                 d="M4 14C4 8.47715 8.47715 4 14 4C19.5228 4 24 8.47715 24 14C24 19.5228 19.5228 24 14 24"
                 stroke="currentColor"
@@ -177,7 +184,11 @@ export default function LoginScreen({ onNavigateSignup, onLoginSuccess, onNaviga
                 onClick={() => setShowPassword(!showPassword)}
                 className="absolute right-3 top-1/2 -translate-y-1/2 text-neutral-400 hover:text-neutral-700 cursor-pointer p-1"
               >
-                {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                {showPassword ? (
+                  <EyeOff className="w-4 h-4" />
+                ) : (
+                  <Eye className="w-4 h-4" />
+                )}
               </button>
             </div>
           </div>
@@ -188,7 +199,11 @@ export default function LoginScreen({ onNavigateSignup, onLoginSuccess, onNaviga
               disabled={loading}
               className="w-full h-12 rounded-xl text-white font-semibold text-sm cta-gradient-btn flex items-center justify-center cursor-pointer shadow-md active:scale-[0.98] transition-all disabled:opacity-60"
             >
-              {loading ? <Loader2 className="w-5 h-5 animate-spin text-white" /> : <span>Log in</span>}
+              {loading ? (
+                <Loader2 className="w-5 h-5 animate-spin text-white" />
+              ) : (
+                <span>Log in</span>
+              )}
             </button>
           </div>
 
@@ -205,5 +220,5 @@ export default function LoginScreen({ onNavigateSignup, onLoginSuccess, onNaviga
         </form>
       </motion.div>
     </div>
-  )
+  );
 }
