@@ -5,9 +5,29 @@ import { ApiResponse } from "../utils/ApiResponse.js";
 
 const isPosInt = (n) => Number.isInteger(n) && n > 0;
 
+export const listWorkouts = asyncHandler(async (req, res) => {
+  const { user_id: userId } = req.user;
+
+  const { rows } = await pool.query(
+    `SELECT w.workout_id, w.name, w.description, w.created_at,
+            COUNT(we.workout_exercise_id)::int AS exercise_count,
+            COALESCE(SUM(we.target_sets), 0)::int AS total_sets
+     FROM workouts w
+     LEFT JOIN workout_assignments wa
+       ON wa.workout_id = w.workout_id AND wa.client_id = $1
+     LEFT JOIN workout_exercises we ON we.workout_id = w.workout_id
+     WHERE w.created_by = $1 OR wa.client_id IS NOT NULL
+     GROUP BY w.workout_id, w.name, w.description, w.created_at
+     ORDER BY w.created_at DESC`,
+    [userId],
+  );
+
+  return res.json(new ApiResponse(200, rows, "Workouts fetched"));
+});
+
 export const createWorkout = asyncHandler(async (req, res) => {
   const { name, description, clientId, exercises } = req.body;
-  const { userId, role } = req.user;
+  const { user_id: userId, role } = req.user;
 
   if (typeof name !== "string" || !name.trim()) {
     throw new ApiError(400, "Workout name is required");
@@ -19,12 +39,23 @@ export const createWorkout = asyncHandler(async (req, res) => {
   exercises.forEach((e, i) => {
     if (typeof e.exerciseId !== "string" || !e.exerciseId.trim())
       throw new ApiError(400, `exercises[${i}].exerciseId is required`);
-    if (!isPosInt(e.sets))
-      throw new ApiError(400, `exercises[${i}].sets must be a positive integer`);
-    if (!isPosInt(e.reps))
-      throw new ApiError(400, `exercises[${i}].reps must be a positive integer`);
-    if (e.weight != null && !(Number(e.weight) >= 0))
-      throw new ApiError(400, `exercises[${i}].weight must be >= 0`);
+    if (Array.isArray(e.sets)) {
+      if (e.sets.length === 0)
+        throw new ApiError(400, `exercises[${i}].sets must not be empty`);
+      e.sets.forEach((set, setIndex) => {
+        if (!isPosInt(Number(set.reps)))
+          throw new ApiError(400, `exercises[${i}].sets[${setIndex}].reps must be a positive integer`);
+        if (set.weight != null && !(Number(set.weight) >= 0))
+          throw new ApiError(400, `exercises[${i}].sets[${setIndex}].weight must be >= 0`);
+      });
+    } else {
+      if (!isPosInt(e.sets))
+        throw new ApiError(400, `exercises[${i}].sets must be a positive integer`);
+      if (!isPosInt(e.reps))
+        throw new ApiError(400, `exercises[${i}].reps must be a positive integer`);
+      if (e.weight != null && !(Number(e.weight) >= 0))
+        throw new ApiError(400, `exercises[${i}].weight must be >= 0`);
+    }
     if (e.restSeconds != null && !(Number.isInteger(e.restSeconds) && e.restSeconds >= 0))
       throw new ApiError(400, `exercises[${i}].restSeconds must be an integer >= 0`);
   });
@@ -75,15 +106,25 @@ export const createWorkout = asyncHandler(async (req, res) => {
 
     const savedExercises = [];
     for (const [i, e] of exercises.entries()) {
+      const setDetails = Array.isArray(e.sets)
+        ? e.sets
+        : Array.from({ length: e.sets }, () => ({ reps: e.reps, weight: e.weight }));
       const { rows: [row] } = await db.query(
         `INSERT INTO workout_exercises
            (workout_id, exercise_id, exercise_order, target_sets, target_reps, target_weight, rest_seconds)
          VALUES ($1, $2, $3, $4, $5, $6, $7)
          RETURNING workout_exercise_id, exercise_id, exercise_order,
                    target_sets, target_reps, target_weight, rest_seconds`,
-        [workout.workout_id, e.exerciseId, i + 1, e.sets, e.reps, e.weight ?? null, e.restSeconds ?? null],
+        [workout.workout_id, e.exerciseId, i + 1, setDetails.length, setDetails[0].reps, setDetails[0].weight ?? null, e.restSeconds ?? null],
       );
-      savedExercises.push(row);
+      for (const [setIndex, set] of setDetails.entries()) {
+        await db.query(
+          `INSERT INTO workout_exercise_sets (workout_exercise_id, set_number, reps, weight)
+           VALUES ($1, $2, $3, $4)`,
+          [row.workout_exercise_id, setIndex + 1, set.reps, set.weight ?? null],
+        );
+      }
+      savedExercises.push({ ...row, sets: setDetails });
     }
 
     let assignment = null;
@@ -112,7 +153,7 @@ export const createWorkout = asyncHandler(async (req, res) => {
 
 export const getWorkout = asyncHandler(async (req, res) => {
   const { workoutId } = req.params;
-  const { userId, role } = req.user;
+  const { user_id: userId, role } = req.user;
 
   const { rows: [workout] } = await pool.query(
     "SELECT * FROM workouts WHERE workout_id = $1",
@@ -130,10 +171,20 @@ export const getWorkout = asyncHandler(async (req, res) => {
 
   const { rows: exercises } = await pool.query(
     `SELECT we.exercise_order, we.exercise_id, e.name, e.gif_url,
-            we.target_sets, we.target_reps, we.target_weight, we.rest_seconds
+            we.target_sets, we.target_reps, we.target_weight, we.rest_seconds,
+            COALESCE(
+              json_agg(
+                json_build_object('setNumber', wes.set_number, 'reps', wes.reps, 'weight', wes.weight)
+                ORDER BY wes.set_number
+              ) FILTER (WHERE wes.workout_exercise_set_id IS NOT NULL),
+              '[]'::json
+            ) AS sets
      FROM workout_exercises we
      JOIN exercises e ON e.exercise_id = we.exercise_id
+     LEFT JOIN workout_exercise_sets wes ON wes.workout_exercise_id = we.workout_exercise_id
      WHERE we.workout_id = $1
+     GROUP BY we.workout_exercise_id, we.exercise_order, we.exercise_id, e.name, e.gif_url,
+              we.target_sets, we.target_reps, we.target_weight, we.rest_seconds
      ORDER BY we.exercise_order`,
     [workoutId],
   );

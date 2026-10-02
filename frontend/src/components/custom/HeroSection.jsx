@@ -1,5 +1,5 @@
 import { motion } from "framer-motion"
-import { Dumbbell, ArrowRight, Layers, TrendingUp, ShieldAlert, ChevronDown } from "lucide-react"
+import { Dumbbell, ArrowRight, Layers, TrendingUp, ShieldAlert, ChevronDown, LogOut } from "lucide-react"
 export default function HeroSection({ onOpenSignup, onOpenLogin, onLogout, onExploreClick, user }) {
   return (
     <div className="relative min-h-screen w-full bg-[#070605] overflow-hidden flex flex-col justify-between select-none">
@@ -14,17 +14,17 @@ export default function HeroSection({ onOpenSignup, onOpenLogin, onLogout, onExp
 
         {/* Cinematic dark gradients to guarantee text legibility and mood */}
         {/* Horizontal vignette: deep dark on the left covering the text column */}
-        <div className="absolute inset-0 bg-gradient-to-r from-[#070605] via-[#070605]/85 md:via-[#070605]/75 to-transparent w-full md:w-[75%]" />
+        <div className="absolute inset-0 bg-linear-to-r from-[#070605] via-[#070605]/85 md:via-[#070605]/75 to-transparent w-full md:w-[75%]" />
 
         {/* Subtle top-down fade for navbar integration */}
-        <div className="absolute inset-x-0 top-0 h-40 bg-gradient-to-b from-[#070605]/90 via-[#070605]/40 to-transparent" />
+        <div className="absolute inset-x-0 top-0 h-40 bg-linear-to-b from-[#070605]/90 via-[#070605]/40 to-transparent" />
 
         {/* Bottom fade into subsequent content */}
-        <div className="absolute inset-x-0 bottom-0 h-44 bg-gradient-to-t from-[#070605] via-[#070605]/80 to-transparent" />
+        <div className="absolute inset-x-0 bottom-0 h-44 bg-linear-to-t from-[#070605] via-[#070605]/80 to-transparent" />
 
         {/* Atmospheric warm orange/amber rim glow behind right side */}
-        <div className="absolute -right-24 bottom-10 w-[550px] h-[550px] bg-orange-600/15 blur-[140px] rounded-full pointer-events-none" />
-        <div className="absolute -left-20 top-1/4 w-[420px] h-[420px] bg-orange-700/10 blur-[130px] rounded-full pointer-events-none" />
+        <div className="absolute -right-24 bottom-10 w-137.5 h-137.5 bg-orange-600/15 blur-[140px] rounded-full pointer-events-none" />
+        <div className="absolute -left-20 top-1/4 w-105 h-105 bg-orange-700/10 blur-[130px] rounded-full pointer-events-none" />
 
 
         {/* Film Grain Texture Overlay */}
@@ -63,21 +63,34 @@ export default function HeroSection({ onOpenSignup, onOpenLogin, onLogout, onExp
           >
             How it works
           </button>
-          <button
-            type="button"
-            onClick={onOpenLogin}
-            className="hover:text-white transition-colors cursor-pointer font-medium text-sm px-1 py-1"
-          >
-            Log in
-          </button>
+          {user ? (
+            <button
+              type="button"
+              onClick={onLogout}
+              className="inline-flex items-center gap-2 hover:text-white transition-colors cursor-pointer font-medium text-sm px-2 py-1 text-zinc-300"
+            >
+              <LogOut className="w-4 h-4" />
+              Log out
+            </button>
+          ) : (
+            <>
+              <button
+                type="button"
+                onClick={onOpenLogin}
+                className="hover:text-white transition-colors cursor-pointer font-medium text-sm px-1 py-1"
+              >
+                Log in
+              </button>
 
-          <button
-            type="button"
-            onClick={onOpenSignup}
-            className="bg-[#f95716] hover:bg-[#ea4808] active:scale-95 text-white text-sm font-semibold px-5 py-2.5 rounded-full transition-all shadow-[0_4px_16px_rgba(249,87,22,0.35)] hover:shadow-[0_6px_22px_rgba(249,87,22,0.5)] cursor-pointer"
-          >
-            Get started
-          </button>
+              <button
+                type="button"
+                onClick={onOpenSignup}
+                className="bg-[#f95716] hover:bg-[#ea4808] active:scale-95 text-white text-sm font-semibold px-5 py-2.5 rounded-full transition-all shadow-[0_4px_16px_rgba(249,87,22,0.35)] hover:shadow-[0_6px_22px_rgba(249,87,22,0.5)] cursor-pointer"
+              >
+                Get started
+              </button>
+            </>
+          )}
         </nav>
       </header>
 
@@ -91,7 +104,7 @@ export default function HeroSection({ onOpenSignup, onOpenLogin, onLogout, onExp
             transition={{ duration: 0.6, ease: "easeOut" }}
             className="flex items-center gap-3 mb-5"
           >
-            <span className="w-5 h-[2px] bg-[#f95716]" />
+            <span className="w-5 h-0.5 bg-[#f95716]" />
             <span className="text-[11px] sm:text-xs tracking-[0.22em] font-semibold text-zinc-400 uppercase">
               Train smarter. Coach better.
             </span>

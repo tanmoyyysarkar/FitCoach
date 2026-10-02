@@ -1,6 +1,9 @@
 import express from "express";
 import cors from "cors";
+import cookieParser from "cookie-parser";
 import { userRouter } from "./routes/user.routes.js";
+import { exerciseRouter } from "./routes/exercise.routes.js";
+import { workoutRouter } from "./routes/workout.routes.js";
 export const app = express();
 
 app.use(
@@ -10,8 +13,11 @@ app.use(
   }),
 );
 app.use(express.json());
+app.use(cookieParser());
 
 app.use("/api/users", userRouter)
+app.use("/api/exercises", exerciseRouter)
+app.use("/api/workouts", workoutRouter)
 
 app.get("/api/health", (req, res) => {
   res.json({

@@ -126,6 +126,24 @@ CREATE TABLE IF NOT EXISTS workout_exercises (
     UNIQUE (workout_id, exercise_order)
 );
 
+CREATE TABLE IF NOT EXISTS workout_exercise_sets (
+    workout_exercise_set_id BIGSERIAL PRIMARY KEY,
+
+    workout_exercise_id BIGINT NOT NULL,
+    set_number INTEGER NOT NULL,
+    reps INTEGER NOT NULL,
+    weight NUMERIC(7,2),
+
+    FOREIGN KEY (workout_exercise_id)
+        REFERENCES workout_exercises(workout_exercise_id)
+        ON DELETE CASCADE,
+
+    UNIQUE (workout_exercise_id, set_number),
+    CHECK (set_number > 0),
+    CHECK (reps > 0),
+    CHECK (weight IS NULL OR weight >= 0)
+);
+
 CREATE TABLE IF NOT EXISTS workout_assignments (
     assignment_id BIGSERIAL PRIMARY KEY,
 
