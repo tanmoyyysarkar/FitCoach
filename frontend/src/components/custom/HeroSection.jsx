@@ -1,5 +1,5 @@
 import { motion } from "framer-motion"
-import { ArrowDown, Dumbbell, ClipboardList, ShieldAlert, TrendingUp } from "lucide-react"
+import { ArrowDown, Dumbbell, ClipboardList, LogOut, ShieldAlert, TrendingUp } from "lucide-react"
 
 const TRUST_STATS = [
   { icon: ClipboardList, value: "Templates", label: "Reusable programs" },
@@ -7,7 +7,7 @@ const TRUST_STATS = [
   { icon: ShieldAlert, value: "Injury flags", label: "Unsafe lifts blocked" },
 ]
 
-export default function HeroSection({ onOpenSignup, onOpenLogin, onExploreClick }) {
+export default function HeroSection({ onOpenSignup, onOpenLogin, onLogout, onExploreClick, user }) {
   return (
     <div className="relative min-h-screen w-full overflow-hidden fitcoach-gradient-bg flex flex-col justify-between select-none">
       {/* Film Grain Texture Overlay */}
@@ -60,21 +60,34 @@ export default function HeroSection({ onOpenSignup, onOpenLogin, onExploreClick 
             How it works
           </button>
 
-          <button
-            type="button"
-            onClick={onOpenLogin}
-            className="hover:text-white transition-colors cursor-pointer font-bold px-2 py-1"
-          >
-            Log in
-          </button>
+          {user ? (
+            <button
+              type="button"
+              onClick={onLogout}
+              className="inline-flex items-center gap-2 hover:text-white transition-colors cursor-pointer font-bold px-2 py-1"
+            >
+              <LogOut className="w-4 h-4" />
+              Log out
+            </button>
+          ) : (
+            <>
+              <button
+                type="button"
+                onClick={onOpenLogin}
+                className="hover:text-white transition-colors cursor-pointer font-bold px-2 py-1"
+              >
+                Log in
+              </button>
 
-          <button
-            type="button"
-            onClick={onOpenSignup}
-            className="cta-gradient-btn text-white text-sm font-semibold px-5 py-2.5 rounded-full hover:opacity-90 active:scale-95 transition-all shadow-md cursor-pointer"
-          >
-            Get started
-          </button>
+              <button
+                type="button"
+                onClick={onOpenSignup}
+                className="cta-gradient-btn text-white text-sm font-semibold px-5 py-2.5 rounded-full hover:opacity-90 active:scale-95 transition-all shadow-md cursor-pointer"
+              >
+                Get started
+              </button>
+            </>
+          )}
         </nav>
       </header>
 
