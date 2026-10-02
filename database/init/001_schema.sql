@@ -175,6 +175,8 @@ CREATE TABLE IF NOT EXISTS sessions (
     user_id BIGINT NOT NULL,
     workout_id BIGINT,
 
+    name VARCHAR(150) NOT NULL,
+
     started_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
     ended_at TIMESTAMPTZ,
 
@@ -190,7 +192,7 @@ CREATE TABLE IF NOT EXISTS sessions (
 );
 
 CREATE TABLE IF NOT EXISTS session_exercises (
-    session_exercise_id BIGINT PRIMARY KEY,
+    session_exercise_id BIGSERIAL PRIMARY KEY,
 
     session_id BIGINT NOT NULL,
     exercise_id VARCHAR(50) NOT NULL,

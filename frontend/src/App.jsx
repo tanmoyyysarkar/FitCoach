@@ -1,101 +1,98 @@
-import { useState } from "react";
-import { motion, AnimatePresence } from "framer-motion";
+import { useNavigate } from "react-router-dom";
 import HomeScreen from "./screens/HomeScreen";
 import DashboardScreen from "./screens/DashboardScreen";
 import LoginScreen from "./screens/LoginScreen";
 import SignupScreen from "./screens/SignupScreen";
+import CreateWorkoutScreen from "./screens/CreateWorkoutScreen";
+import LogSessionScreen from "./screens/LogSessionScreen";
 import { useAuth } from "./context/AuthContext";
+import { Routes, Route, Navigate } from "react-router-dom";
 
 function App() {
-  const [currentScreen, setCurrentScreen] = useState("home"); // "home" | "login" | "signup" | "dashboard"
-  const { user, isRestoring, setAuthenticatedUser, logout } = useAuth();
-
-  const visibleScreen = isRestoring
-    ? "home"
-    : user?.role === "client" &&
-        (currentScreen === "home" || currentScreen === "dashboard")
-      ? "dashboard"
-      : currentScreen;
+  const navigate = useNavigate();
+  const { user, setAuthenticatedUser, logout } = useAuth();
 
   const handleAuthSuccess = (userData) => {
     setAuthenticatedUser(userData);
-    setCurrentScreen(userData?.role === "client" ? "dashboard" : "home");
+    navigate(userData?.role === "client" ? "/dashboard" : "/home");
   };
 
   const handleLogout = async () => {
     await logout();
-    setCurrentScreen("home");
-  };
-
-  const navigateTo = (screen) => {
-    setCurrentScreen(screen);
-    window.scrollTo({ top: 0, behavior: "instant" });
+    navigate("/home");
   };
 
   return (
     <div className="min-h-screen bg-[#0a0f1a] font-sans selection:bg-orange-500/40 selection:text-white">
-      <AnimatePresence mode="wait">
-        {visibleScreen === "home" && (
-          <motion.div
-            key="home"
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            transition={{ duration: 0.2 }}
-          >
+      <Routes>
+        <Route path="/" element={<Navigate to="/home" replace />} />
+        <Route
+          path="/home"
+          element={
             <HomeScreen
-              onOpenSignup={() => navigateTo("signup")}
-              onOpenLogin={() => navigateTo("login")}
+              onOpenSignup={() => navigate("/register")}
+              onOpenLogin={() => navigate("/login")}
               user={user}
               onLogout={handleLogout}
             />
-          </motion.div>
-        )}
-
-        {visibleScreen === "dashboard" && user?.role === "client" && (
-          <motion.div
-            key="dashboard"
-            initial={{ opacity: 0, y: 12 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: -12 }}
-            transition={{ duration: 0.2 }}
-          >
-            <DashboardScreen user={user} onLogout={handleLogout} />
-          </motion.div>
-        )}
-
-        {visibleScreen === "login" && (
-          <motion.div
-            key="login"
-            initial={{ opacity: 0, y: 12 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: -12 }}
-            transition={{ duration: 0.2 }}
-          >
-            <LoginScreen
-              onNavigateSignup={() => navigateTo("signup")}
-              onNavigateHome={() => navigateTo("home")}
-              onLoginSuccess={handleAuthSuccess}
-            />
-          </motion.div>
-        )}
-
-        {visibleScreen === "signup" && (
-          <motion.div
-            key="signup"
-            initial={{ opacity: 0, y: 12 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: -12 }}
-            transition={{ duration: 0.2 }}
-          >
-            <SignupScreen
-              onNavigateLogin={() => navigateTo("login")}
-              onNavigateHome={() => navigateTo("home")}
-              onSignupSuccess={handleAuthSuccess}
-            />
-          </motion.div>
-        )}
-      </AnimatePresence>
+          }
+        />
+        <Route
+          path="/dashboard"
+          element={
+            user?.role === "client" ? (
+              <DashboardScreen user={user} onLogout={handleLogout} />
+            ) : (
+              <Navigate to="/login" replace />
+            )
+          }
+        />
+        <Route
+          path="/login"
+          element={
+            user?.role === "client" ? (
+              <Navigate to="/dashboard" replace />
+            ) : (
+              <LoginScreen
+                onNavigateSignup={() => navigate("/register")}
+                onNavigateHome={() => navigate("/home")}
+                onLoginSuccess={handleAuthSuccess}
+              />
+            )
+          }
+        />
+        <Route
+          path="/register"
+          element={
+            user?.role === "client" ? (
+              <Navigate to="/dashboard" replace />
+            ) : (
+              <SignupScreen
+                onNavigateLogin={() => navigate("/login")}
+                onNavigateHome={() => navigate("/home")}
+                onSignupSuccess={handleAuthSuccess}
+              />
+            )
+          }
+        />
+        <Route
+          path="/create-workout"
+          element={
+            user ? (
+              <CreateWorkoutScreen />
+            ) : (
+              <Navigate to="/login" replace />
+            )
+          }
+        />
+        <Route
+          path="/log-session/:workoutId?"
+          element={
+            user ? <LogSessionScreen /> : <Navigate to="/login" replace />
+          }
+        />
+        <Route path="*" element={<Navigate to="/home" replace />} />
+      </Routes>
     </div>
   );
 }

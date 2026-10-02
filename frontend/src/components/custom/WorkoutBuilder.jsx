@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react"
-import { Check, Loader2, Plus, Search, Trash2, X } from "lucide-react"
+import { Check, ChevronDown, ChevronUp, Loader2, Plus, Search, Trash2, X } from "lucide-react"
 import api from "@/api/axios"
 import {
   Dialog,
@@ -69,6 +69,16 @@ export default function WorkoutBuilder({ user, onCancel, onSaved }) {
 
   const removeSet = (setIndex) => {
     setDraftSets((current) => current.filter((_, index) => index !== setIndex))
+  }
+
+  const nudgeDraftSet = (setIndex, field, delta) => {
+    setDraftSets((current) => current.map((set, index) => {
+      if (index !== setIndex) return set
+      const base = set[field] === "" ? 0 : Number(set[field])
+      const min = field === "reps" ? 1 : 0
+      const next = Math.max(min, Math.round((base + delta) * 100) / 100)
+      return { ...set, [field]: String(next) }
+    }))
   }
 
   const saveExercise = () => {
@@ -251,10 +261,22 @@ export default function WorkoutBuilder({ user, onCancel, onSaved }) {
                 {draftSets.map((set, index) => <div key={`draft-set-${index}`} className="grid grid-cols-[auto_1fr_1fr_auto] items-end gap-2 rounded-xl border border-white/10 bg-white/5 p-3">
                   <span className="pb-2 text-xs font-semibold text-zinc-500">{index + 1}</span>
                   <label className="text-xs font-medium text-zinc-500">Weight
-                    <input type="number" min="0" step="0.01" value={set.weight} onChange={(event) => updateSet(index, "weight", event.target.value)} placeholder="kg" className="mt-1 h-10 w-full rounded-lg border border-white/10 bg-white/5 px-3 text-sm text-white placeholder:text-zinc-600 outline-none focus:border-orange-500/50 focus:ring-2 focus:ring-orange-500/20" />
+                    <div className="relative mt-1">
+                      <input type="number" min="0" step="0.01" value={set.weight} onChange={(event) => updateSet(index, "weight", event.target.value)} placeholder="kg" className="h-10 w-full rounded-lg border border-white/10 bg-white/5 px-3 pr-7 text-sm text-white placeholder:text-zinc-600 outline-none focus:border-orange-500/50 focus:ring-2 focus:ring-orange-500/20" />
+                      <div className="absolute right-1.5 top-1/2 flex -translate-y-1/2 flex-col">
+                        <button type="button" onClick={() => nudgeDraftSet(index, "weight", 2.5)} aria-label="Increase weight" className="text-zinc-500 transition hover:text-orange-400"><ChevronUp className="h-3.5 w-3.5" /></button>
+                        <button type="button" onClick={() => nudgeDraftSet(index, "weight", -2.5)} aria-label="Decrease weight" className="text-zinc-500 transition hover:text-orange-400"><ChevronDown className="h-3.5 w-3.5" /></button>
+                      </div>
+                    </div>
                   </label>
                   <label className="text-xs font-medium text-zinc-500">Reps
-                    <input type="number" min="1" step="1" value={set.reps} onChange={(event) => updateSet(index, "reps", event.target.value)} placeholder="reps" className="mt-1 h-10 w-full rounded-lg border border-white/10 bg-white/5 px-3 text-sm text-white placeholder:text-zinc-600 outline-none focus:border-orange-500/50 focus:ring-2 focus:ring-orange-500/20" />
+                    <div className="relative mt-1">
+                      <input type="number" min="1" step="1" value={set.reps} onChange={(event) => updateSet(index, "reps", event.target.value)} placeholder="reps" className="h-10 w-full rounded-lg border border-white/10 bg-white/5 px-3 pr-7 text-sm text-white placeholder:text-zinc-600 outline-none focus:border-orange-500/50 focus:ring-2 focus:ring-orange-500/20" />
+                      <div className="absolute right-1.5 top-1/2 flex -translate-y-1/2 flex-col">
+                        <button type="button" onClick={() => nudgeDraftSet(index, "reps", 1)} aria-label="Increase reps" className="text-zinc-500 transition hover:text-orange-400"><ChevronUp className="h-3.5 w-3.5" /></button>
+                        <button type="button" onClick={() => nudgeDraftSet(index, "reps", -1)} aria-label="Decrease reps" className="text-zinc-500 transition hover:text-orange-400"><ChevronDown className="h-3.5 w-3.5" /></button>
+                      </div>
+                    </div>
                   </label>
                   <button type="button" onClick={() => removeSet(index)} aria-label={`Remove set ${index + 1}`} className="mb-1 rounded-lg p-2 text-zinc-500 transition hover:bg-red-500/10 hover:text-red-400"><Trash2 className="h-4 w-4" /></button>
                 </div>)}
