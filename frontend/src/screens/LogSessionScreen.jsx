@@ -129,14 +129,19 @@ export default function LogSessionScreen() {
     event.preventDefault();
     setError("");
     setSuccess("");
-    if (!name.trim()) return setError("Give this session a name");
+    if (!name.trim()) return setError("Session name is required");
     if (!exercises.length) return setError("Add at least one exercise");
-    if (exercises.some((exercise) => !exercise.sets.length)) return setError("Every exercise needs at least one set");
-    if (exercises.some((exercise) => exercise.sets.some((set) => !Number.isInteger(Number(set.reps)) || Number(set.reps) < 1))) {
-      return setError("Reps must be positive whole numbers");
-    }
-    if (exercises.some((exercise) => exercise.sets.some((set) => set.weight !== "" && Number(set.weight) < 0))) {
-      return setError("Weight cannot be negative");
+    for (const [exerciseIndex, exercise] of exercises.entries()) {
+      for (const [setIndex, set] of exercise.sets.entries()) {
+        const reps = Number(set.reps);
+        const weight = set.weight === "" ? null : Number(set.weight);
+        if (set.completed && (!Number.isInteger(reps) || reps < 1)) {
+          return setError(`Exercise ${exerciseIndex + 1}, set ${setIndex + 1}: reps must be at least 1`);
+        }
+        if (set.completed && weight !== null && (!Number.isFinite(weight) || weight < 0)) {
+          return setError(`Exercise ${exerciseIndex + 1}, set ${setIndex + 1}: weight cannot be negative`);
+        }
+      }
     }
     if (!exercises.some((exercise) => exercise.sets.some((set) => set.completed))) {
       return setError("Complete at least one set before saving");
@@ -209,98 +214,289 @@ export default function LogSessionScreen() {
   };
 
   return (
-    <main className="min-h-screen bg-[#070605] px-4 py-6 text-zinc-100 sm:px-8 lg:px-12">
-      <form onSubmit={handleSave} className="mx-auto max-w-5xl space-y-6 rounded-[2rem] border border-white/10 bg-[#0c0a09] p-5 shadow-2xl shadow-black/40 sm:p-8">
-        <button type="button" onClick={() => navigate("/dashboard")} className="inline-flex items-center gap-2 rounded-full px-3 py-2 text-sm font-semibold text-zinc-400 transition hover:bg-white/5 hover:text-white">
-          <ArrowLeft className="h-4 w-4" /> Back to dashboard
+    <main className="min-h-screen bg-black px-4 py-8 text-neutral-100 sm:px-8 selection:bg-orange-500/30 selection:text-white">
+      <div className="mx-auto max-w-5xl space-y-6">
+        {/* Back Button */}
+        <button
+          type="button"
+          onClick={() => navigate("/dashboard")}
+          className="inline-flex items-center gap-2 rounded-sm border border-white/10 bg-white/[0.02] px-3 py-1.5 text-xs font-medium text-neutral-400 transition hover:bg-white/[0.06] hover:text-white"
+        >
+          <ArrowLeft className="h-3.5 w-3.5" />
+          <span>Back to Dashboard</span>
         </button>
-        <div>
-          <div className="flex items-center gap-3">
-            <span className="h-[2px] w-5 bg-[#f95716]" />
-            <p className="text-[11px] font-semibold uppercase tracking-[0.22em] text-zinc-400">Session log</p>
+
+        {/* Clean, Non-boxy Form Container */}
+        <form onSubmit={handleSave} className="rounded-sm border border-white/[0.08] bg-[#0c0e14] p-6 sm:p-8 space-y-6">
+          {/* Header */}
+          <div className="border-b border-white/[0.08] pb-5">
+            <div className="flex items-center gap-2">
+              <span className="h-[2px] w-4 bg-[#ff6723]" />
+              <p className="text-[10px] font-mono font-semibold uppercase tracking-widest text-orange-400">
+                Session Log
+              </p>
+            </div>
+            <h1 className="mt-2 text-2xl font-extrabold tracking-tight text-white sm:text-3xl">
+              Log a training session
+            </h1>
+            <p className="mt-1 text-xs text-neutral-400">
+              Edit sets and weight in real time, then check each completed set.
+            </p>
           </div>
-          <h1 className="mt-3 text-3xl font-extrabold tracking-tight text-white sm:text-4xl">Log a <span className="text-[#f95716]">session</span></h1>
-          <p className="mt-2 text-sm text-zinc-400">Edit the plan as you train, then check each completed set.</p>
-        </div>
-        {error && <div className="rounded-xl border border-red-500/30 bg-red-500/10 px-4 py-3 text-sm text-red-300">{error}</div>}
-        {success && <div className="flex items-center gap-2 rounded-xl border border-emerald-500/30 bg-emerald-500/10 px-4 py-3 text-sm text-emerald-300"><Check className="h-4 w-4" />{success}</div>}
-        {loading ? <p className="text-sm text-zinc-500">Loading workout...</p> : <>
-          <label className="block text-xs font-semibold uppercase tracking-wider text-zinc-400">Session name
-            <input value={name} onChange={(event) => setName(event.target.value)} className="mt-2 block h-11 w-full rounded-xl border border-white/10 bg-white/5 px-4 text-sm font-normal normal-case tracking-normal text-white placeholder:text-zinc-600 outline-none transition focus:border-orange-500/50 focus:ring-2 focus:ring-orange-500/20" placeholder="Today's training" />
-          </label>
-          <section className="rounded-2xl border border-white/10 bg-white/[0.03] p-4">
-            <div className="flex items-center justify-between gap-3">
-              <h2 className="text-xs font-semibold uppercase tracking-[0.18em] text-zinc-400">Find exercises</h2>
-              {loadingResults && <Loader2 className="h-4 w-4 animate-spin text-orange-500" />}
+
+          {error && (
+            <div className="rounded-sm border border-red-500/30 bg-red-500/10 px-4 py-2.5 text-xs text-red-300">
+              {error}
             </div>
-            <div className="relative mt-3">
-              <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-zinc-500" />
-              <input value={search} onChange={(event) => setSearch(event.target.value)} className="h-11 w-full rounded-xl border border-white/10 bg-white/5 pl-9 pr-3 text-sm text-white placeholder:text-zinc-600 outline-none transition focus:border-orange-500/50 focus:ring-2 focus:ring-orange-500/20" placeholder="Search by name" />
+          )}
+          {success && (
+            <div className="flex items-center gap-2 rounded-sm border border-emerald-500/30 bg-emerald-500/10 px-4 py-2.5 text-xs text-emerald-300">
+              <Check className="h-4 w-4" />
+              <span>{success}</span>
             </div>
-            <div className="mt-3 max-h-72 space-y-2 overflow-y-auto">
-              {!loadingResults && !results.length && <p className="px-2 py-8 text-center text-sm text-zinc-500">No matching exercises.</p>}
-              {results.map((exercise) => (
-                <button type="button" key={exercise.exercise_id} onClick={() => addExercise(exercise)} className="flex w-full items-center gap-3 rounded-xl border border-transparent bg-white/5 p-3 text-left transition hover:border-orange-500/40 hover:bg-white/[0.08]">
-                  <div className="flex h-9 w-9 shrink-0 items-center justify-center overflow-hidden rounded-lg bg-orange-500/15 text-orange-400">
-                    {exercise.gif_url ? <img src={exercise.gif_url} alt="" className="h-full w-full object-cover" /> : <Plus className="h-4 w-4" />}
-                  </div>
-                  <span className="min-w-0 flex-1 truncate text-sm font-medium text-zinc-100">{formatName(exercise.name)}</span>
-                  <Plus className="h-4 w-4 text-orange-500" />
-                </button>
-              ))}
+          )}
+
+          {loading ? (
+            <div className="flex items-center justify-center py-12 text-xs text-neutral-500">
+              <Loader2 className="mr-2 h-4 w-4 animate-spin text-orange-400" />
+              <span>Loading workout details...</span>
             </div>
-          </section>
-          <section>
-            <div className="flex items-center justify-between">
-              <h2 className="text-xs font-semibold uppercase tracking-[0.18em] text-zinc-400">Exercises</h2>
-              <span className="text-xs font-medium text-zinc-500">{exercises.length} added</span>
-            </div>
-            {!exercises.length && <div className="mt-3 rounded-2xl border border-dashed border-white/15 px-4 py-12 text-center text-sm text-zinc-500">Your exercises will appear here.</div>}
-            <div className="mt-3 space-y-3">
-              {exercises.map((exercise, exerciseIndex) => <article key={exercise.exerciseId} className="rounded-2xl border border-white/10 bg-white/[0.03] p-4">
-                <div className="flex items-center gap-3">
-                  <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-[#f95716]/15 text-xs font-semibold text-orange-400">{exerciseIndex + 1}</span>
-                  <h3 className="min-w-0 flex-1 truncate font-medium text-white">{exercise.name}</h3>
-                  <button type="button" onClick={() => setExercises((current) => current.filter((item) => item.exerciseId !== exercise.exerciseId))} aria-label={`Remove ${exercise.name}`} className="rounded-lg p-1.5 text-zinc-500 transition hover:bg-red-500/10 hover:text-red-400"><Trash2 className="h-4 w-4" /></button>
+          ) : (
+            <>
+              {/* Session Name */}
+              <label className="block text-[11px] font-mono uppercase tracking-wider text-neutral-400">
+                Session Title
+                <input
+                  value={name}
+                  onChange={(event) => setName(event.target.value)}
+                  className="mt-1.5 block h-10 w-full rounded-sm border border-white/10 bg-black px-3.5 text-xs font-normal normal-case text-white placeholder:text-neutral-600 outline-none transition focus:border-orange-500/60"
+                  placeholder="e.g. Pull Power & High Volume Rows"
+                />
+              </label>
+
+              {/* Find Exercises */}
+              <section className="rounded-sm border border-white/[0.08] bg-black p-4">
+                <div className="flex items-center justify-between gap-3 border-b border-white/[0.06] pb-2.5">
+                  <h2 className="text-xs font-mono font-semibold uppercase tracking-wider text-neutral-300">
+                    Add Exercises
+                  </h2>
+                  {loadingResults && <Loader2 className="h-3.5 w-3.5 animate-spin text-orange-400" />}
                 </div>
-                <div className="mt-3 space-y-2">
-                  {exercise.sets.map((set, setIndex) => <div key={`${exercise.exerciseId}-${setIndex}`} className={`grid grid-cols-[auto_1fr_1fr_auto_auto] items-center gap-2 rounded-xl border p-3 ${set.completed ? "border-emerald-500/50 bg-emerald-500/10" : "border-white/10 bg-white/5"}`}>
-                    <span className="text-xs font-semibold text-zinc-500">Set {setIndex + 1}</span>
-                    <div className="relative">
-                      <input type="number" min="0" step="0.01" value={set.weight} onChange={(event) => updateSet(exercise.exerciseId, setIndex, "weight", event.target.value)} className="h-10 w-full rounded-lg border border-white/10 bg-white/5 px-3 pr-7 text-sm text-white placeholder:text-zinc-600 outline-none transition focus:border-orange-500/50 focus:ring-2 focus:ring-orange-500/20" placeholder="Weight" />
-                      <div className="absolute right-1.5 top-1/2 flex -translate-y-1/2 flex-col">
-                        <button type="button" onClick={() => nudgeSet(exercise.exerciseId, setIndex, "weight", 2.5)} aria-label="Increase weight" className="text-zinc-500 transition hover:text-orange-400"><ChevronUp className="h-3.5 w-3.5" /></button>
-                        <button type="button" onClick={() => nudgeSet(exercise.exerciseId, setIndex, "weight", -2.5)} aria-label="Decrease weight" className="text-zinc-500 transition hover:text-orange-400"><ChevronDown className="h-3.5 w-3.5" /></button>
+                <div className="relative mt-3">
+                  <Search className="absolute left-3 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-neutral-500" />
+                  <input
+                    value={search}
+                    onChange={(event) => setSearch(event.target.value)}
+                    className="h-9 w-full rounded-sm border border-white/10 bg-[#0c0e14] pl-8 pr-3 text-xs text-white placeholder:text-neutral-600 outline-none transition focus:border-orange-500/60"
+                    placeholder="Search by exercise name..."
+                  />
+                </div>
+                <div className="mt-3 max-h-60 space-y-1.5 overflow-y-auto pr-1">
+                  {!loadingResults && !results.length && (
+                    <p className="py-6 text-center text-xs text-neutral-500">
+                      No matching exercises found.
+                    </p>
+                  )}
+                  {results.map((exercise) => (
+                    <button
+                      type="button"
+                      key={exercise.exercise_id}
+                      onClick={() => addExercise(exercise)}
+                      className="flex w-full items-center gap-3 rounded-sm border border-white/[0.04] bg-white/[0.02] p-2 text-left transition hover:border-orange-500/40 hover:bg-white/[0.04]"
+                    >
+                      <div className="flex h-7 w-7 shrink-0 items-center justify-center rounded-sm bg-neutral-900 border border-white/10 text-neutral-400">
+                        {exercise.gif_url ? (
+                          <img src={exercise.gif_url} alt="" className="h-full w-full object-cover rounded-sm" />
+                        ) : (
+                          <Plus className="h-3.5 w-3.5 text-orange-400" />
+                        )}
                       </div>
-                    </div>
-                    <div className="relative">
-                      <input type="number" min="1" step="1" value={set.reps} onChange={(event) => updateSet(exercise.exerciseId, setIndex, "reps", event.target.value)} className="h-10 w-full rounded-lg border border-white/10 bg-white/5 px-3 pr-7 text-sm text-white placeholder:text-zinc-600 outline-none transition focus:border-orange-500/50 focus:ring-2 focus:ring-orange-500/20" placeholder="Reps" />
-                      <div className="absolute right-1.5 top-1/2 flex -translate-y-1/2 flex-col">
-                        <button type="button" onClick={() => nudgeSet(exercise.exerciseId, setIndex, "reps", 1)} aria-label="Increase reps" className="text-zinc-500 transition hover:text-orange-400"><ChevronUp className="h-3.5 w-3.5" /></button>
-                        <button type="button" onClick={() => nudgeSet(exercise.exerciseId, setIndex, "reps", -1)} aria-label="Decrease reps" className="text-zinc-500 transition hover:text-orange-400"><ChevronDown className="h-3.5 w-3.5" /></button>
-                      </div>
-                    </div>
-                    <label className="flex cursor-pointer items-center gap-2 text-sm text-zinc-400">
-                      <input type="checkbox" checked={set.completed} onChange={(event) => updateSet(exercise.exerciseId, setIndex, "completed", event.target.checked)} className="peer sr-only" />
-                      <span className="flex h-5 w-5 items-center justify-center rounded-md border border-white/20 bg-white/5 transition peer-checked:border-[#f95716] peer-checked:bg-[#f95716]">
-                        {set.completed && <Check className="h-3.5 w-3.5 text-white" />}
+                      <span className="min-w-0 flex-1 truncate text-xs font-medium text-white">
+                        {formatName(exercise.name)}
                       </span>
-                    </label>
-                    <button type="button" onClick={() => removeSet(exercise.exerciseId, setIndex)} aria-label={`Remove set ${setIndex + 1}`} className="rounded-lg p-2 text-zinc-500 transition hover:bg-red-500/10 hover:text-red-400"><Trash2 className="h-4 w-4" /></button>
-                  </div>)}
+                      <Plus className="h-3.5 w-3.5 text-orange-400" />
+                    </button>
+                  ))}
                 </div>
-                <button type="button" onClick={() => addSet(exercise.exerciseId)} className="mt-3 inline-flex items-center gap-2 rounded-full border border-dashed border-orange-500/40 px-4 py-2.5 text-sm font-semibold text-orange-400 transition hover:bg-orange-500/10"><Plus className="h-4 w-4" /> Add set</button>
-              </article>)}
-            </div>
-          </section>
-          <div className="flex justify-end border-t border-white/10 pt-5">
-            <button type="submit" disabled={saving} className="inline-flex h-11 items-center justify-center gap-2 rounded-full bg-[#f95716] px-6 text-sm font-semibold text-white shadow-[0_6px_22px_rgba(249,87,22,0.4)] transition hover:bg-[#ea4808] disabled:cursor-not-allowed disabled:opacity-60">
-              {saving && <Loader2 className="h-4 w-4 animate-spin" />}
-              {saving ? "Saving..." : "Save session"}
-            </button>
-          </div>
-        </>}
-      </form>
+              </section>
+
+              {/* Exercises List */}
+              <section className="space-y-4">
+                <div className="flex items-center justify-between border-b border-white/[0.06] pb-2">
+                  <h2 className="text-xs font-mono font-semibold uppercase tracking-wider text-neutral-300">
+                    Logged Exercises
+                  </h2>
+                  <span className="text-[11px] text-neutral-500 font-mono">
+                    {exercises.length} added
+                  </span>
+                </div>
+
+                {!exercises.length && (
+                  <div className="rounded-sm border border-dashed border-white/10 px-4 py-12 text-center text-xs text-neutral-500">
+                    Search and select exercises above to log your session.
+                  </div>
+                )}
+
+                <div className="space-y-3">
+                  {exercises.map((exercise, exerciseIndex) => (
+                    <article
+                      key={exercise.exerciseId}
+                      className="rounded-sm border border-white/[0.08] bg-black p-4"
+                    >
+                      <div className="flex items-center justify-between gap-3 border-b border-white/[0.06] pb-2.5">
+                        <div className="flex items-center gap-2">
+                          <span className="flex h-5 w-5 shrink-0 items-center justify-center rounded-sm bg-orange-500/15 text-[10px] font-bold text-orange-400">
+                            {exerciseIndex + 1}
+                          </span>
+                          <h3 className="font-semibold text-xs text-white">
+                            {exercise.name}
+                          </h3>
+                        </div>
+                        <button
+                          type="button"
+                          onClick={() =>
+                            setExercises((current) =>
+                              current.filter((item) => item.exerciseId !== exercise.exerciseId)
+                            )
+                          }
+                          aria-label={`Remove ${exercise.name}`}
+                          className="p-1 text-neutral-500 hover:text-red-400 transition"
+                        >
+                          <Trash2 className="h-3.5 w-3.5" />
+                        </button>
+                      </div>
+
+                      {/* Sets Table */}
+                      <div className="mt-3 space-y-2">
+                        {exercise.sets.map((set, setIndex) => (
+                          <div
+                            key={`${exercise.exerciseId}-${setIndex}`}
+                            className={`grid grid-cols-[auto_1fr_1fr_auto_auto] items-center gap-2 rounded-sm border p-2 text-xs transition ${
+                              set.completed
+                                ? "border-emerald-500/40 bg-emerald-500/[0.06]"
+                                : "border-white/[0.06] bg-[#0c0e14]"
+                            }`}
+                          >
+                            <span className="font-mono text-neutral-500 font-semibold px-1">
+                              Set {setIndex + 1}
+                            </span>
+                            <div className="relative">
+                              <input
+                                type="number"
+                                min="0"
+                                step="0.5"
+                                value={set.weight}
+                                onChange={(event) =>
+                                  updateSet(exercise.exerciseId, setIndex, "weight", event.target.value)
+                                }
+                                className="h-8 w-full rounded-sm border border-white/10 bg-black px-2.5 pr-6 text-xs text-white placeholder:text-neutral-600 outline-none focus:border-orange-500/60"
+                                placeholder="Weight (kg)"
+                              />
+                              <div className="absolute right-1 top-1/2 flex -translate-y-1/2 flex-col">
+                                <button
+                                  type="button"
+                                  onClick={() => nudgeSet(exercise.exerciseId, setIndex, "weight", 2.5)}
+                                  className="text-neutral-500 hover:text-orange-400"
+                                >
+                                  <ChevronUp className="h-3 w-3" />
+                                </button>
+                                <button
+                                  type="button"
+                                  onClick={() => nudgeSet(exercise.exerciseId, setIndex, "weight", -2.5)}
+                                  className="text-neutral-500 hover:text-orange-400"
+                                >
+                                  <ChevronDown className="h-3 w-3" />
+                                </button>
+                              </div>
+                            </div>
+
+                            <div className="relative">
+                              <input
+                                type="number"
+                                min="1"
+                                step="1"
+                                value={set.reps}
+                                onChange={(event) =>
+                                  updateSet(exercise.exerciseId, setIndex, "reps", event.target.value)
+                                }
+                                className="h-8 w-full rounded-sm border border-white/10 bg-black px-2.5 pr-6 text-xs text-white placeholder:text-neutral-600 outline-none focus:border-orange-500/60"
+                                placeholder="Reps"
+                              />
+                              <div className="absolute right-1 top-1/2 flex -translate-y-1/2 flex-col">
+                                <button
+                                  type="button"
+                                  onClick={() => nudgeSet(exercise.exerciseId, setIndex, "reps", 1)}
+                                  className="text-neutral-500 hover:text-orange-400"
+                                >
+                                  <ChevronUp className="h-3 w-3" />
+                                </button>
+                                <button
+                                  type="button"
+                                  onClick={() => nudgeSet(exercise.exerciseId, setIndex, "reps", -1)}
+                                  className="text-neutral-500 hover:text-orange-400"
+                                >
+                                  <ChevronDown className="h-3 w-3" />
+                                </button>
+                              </div>
+                            </div>
+
+                            {/* Completed Checkbox */}
+                            <label className="flex cursor-pointer items-center gap-1.5 px-1 text-xs text-neutral-400">
+                              <input
+                                type="checkbox"
+                                checked={set.completed}
+                                onChange={(event) =>
+                                  updateSet(exercise.exerciseId, setIndex, "completed", event.target.checked)
+                                }
+                                className="peer sr-only"
+                              />
+                              <span className="flex h-5 w-5 items-center justify-center rounded-sm border border-white/20 bg-white/[0.04] transition peer-checked:border-[#ff6723] peer-checked:bg-[#ff6723]">
+                                {set.completed && <Check className="h-3.5 w-3.5 text-white" />}
+                              </span>
+                              <span className="text-[10px] hidden sm:inline">
+                                {set.completed ? "Done" : "Complete"}
+                              </span>
+                            </label>
+
+                            <button
+                              type="button"
+                              onClick={() => removeSet(exercise.exerciseId, setIndex)}
+                              className="p-1 text-neutral-500 hover:text-red-400 transition"
+                            >
+                              <Trash2 className="h-3.5 w-3.5" />
+                            </button>
+                          </div>
+                        ))}
+                      </div>
+
+                      <button
+                        type="button"
+                        onClick={() => addSet(exercise.exerciseId)}
+                        className="mt-3 inline-flex items-center gap-1.5 rounded-sm border border-dashed border-orange-500/30 px-3 py-1.5 text-xs font-semibold text-orange-400 transition hover:bg-orange-500/10"
+                      >
+                        <Plus className="h-3 w-3" />
+                        <span>Add set</span>
+                      </button>
+                    </article>
+                  ))}
+                </div>
+              </section>
+
+              {/* Submit Action */}
+              <div className="flex justify-end border-t border-white/[0.08] pt-4">
+                <button
+                  type="submit"
+                  disabled={saving}
+                  className="inline-flex h-10 items-center justify-center gap-2 rounded-sm bg-[#ff6723] hover:bg-[#f05a18] px-6 text-xs font-bold text-white shadow-[0_0_15px_rgba(255,103,35,0.25)] transition disabled:cursor-not-allowed disabled:opacity-60"
+                >
+                  {saving && <Loader2 className="h-3.5 w-3.5 animate-spin" />}
+                  <span>{saving ? "Saving session..." : "Save Session"}</span>
+                </button>
+              </div>
+            </>
+          )}
+        </form>
+      </div>
     </main>
   );
 }

@@ -1,191 +1,238 @@
-import { useEffect, useState } from "react";
-import { useNavigate } from "react-router-dom";
-import { Dumbbell, Home, Loader2, LogOut, Plus, Sparkles } from "lucide-react";
+import React, { useEffect, useState } from "react";
+import { useNavigate, useSearchParams } from "react-router-dom";
 import api from "../api/axios";
+import {
+  DashboardSidebar,
+  DashboardHeader,
+  MonthlyReportCard,
+  RoutineList,
+  RecentWorkoutCard,
+  MonthlyReportModal,
+  RoutineLogSessionView,
+  LogSessionView,
+  EmptyWorkoutView,
+} from "../components/dashboard";
+import WorkoutBuilder from "../components/custom/WorkoutBuilder";
+import { Sparkles, Plus, Dumbbell, AlertCircle } from "lucide-react";
 
 export default function DashboardScreen({ user, onLogout }) {
   const navigate = useNavigate();
+  const [searchParams, setSearchParams] = useSearchParams();
+
   const [workouts, setWorkouts] = useState([]);
   const [loadingWorkouts, setLoadingWorkouts] = useState(true);
   const [workoutError, setWorkoutError] = useState("");
+  const [isReportOpen, setIsReportOpen] = useState(false);
+  const [isBannerDismissed, setIsBannerDismissed] = useState(false);
+  const [isMobileSidebarOpen, setIsMobileSidebarOpen] = useState(false);
+  const [activeTab, setActiveTab] = useState(searchParams.get("tab") || "dashboard");
+  const [selectedWorkoutId, setSelectedWorkoutId] = useState(searchParams.get("workoutId") || null);
+
+  const loadWorkouts = async () => {
+    setLoadingWorkouts(true);
+    setWorkoutError("");
+    try {
+      const response = await api.get("/workouts");
+      setWorkouts(response.data?.data || []);
+    } catch (requestError) {
+      setWorkoutError(
+        requestError.response?.data?.message || "Could not load workouts"
+      );
+    } finally {
+      setLoadingWorkouts(false);
+    }
+  };
 
   useEffect(() => {
-    let cancelled = false;
-
-    const loadWorkouts = async () => {
-      setLoadingWorkouts(true);
-      setWorkoutError("");
-      try {
-        const response = await api.get("/workouts");
-        if (!cancelled) setWorkouts(response.data?.data || []);
-      } catch (requestError) {
-        if (!cancelled)
-          setWorkoutError(
-            requestError.response?.data?.message || "Could not load workouts",
-          );
-      } finally {
-        if (!cancelled) setLoadingWorkouts(false);
-      }
-    };
-
     loadWorkouts();
-    return () => {
-      cancelled = true;
-    };
   }, []);
 
+  // Sync tab and workoutId with URL search parameters
+  useEffect(() => {
+    const currentTab = searchParams.get("tab") || "dashboard";
+    const currentWorkoutId = searchParams.get("workoutId") || null;
+    setActiveTab(currentTab);
+    setSelectedWorkoutId(currentWorkoutId);
+  }, [searchParams]);
+
+  const handleTabChange = (tabId, workoutId = null) => {
+    setActiveTab(tabId);
+    setSelectedWorkoutId(workoutId);
+    if (tabId === "dashboard") {
+      setSearchParams({});
+    } else if (workoutId) {
+      setSearchParams({ tab: tabId, workoutId });
+    } else {
+      setSearchParams({ tab: tabId });
+    }
+  };
+
+  const handleStartRoutine = (routineId) => {
+    handleTabChange("log-session", routineId);
+  };
+
+  const handleStartEmpty = () => {
+    handleTabChange("empty-workout", null);
+  };
+
+  const handleCreateWorkout = () => {
+    handleTabChange("create-workout", null);
+  };
+
   return (
-    <main className="min-h-screen bg-[#070605] text-zinc-100">
-      <header className="border-b border-white/10 bg-[#070605]/80 backdrop-blur">
-        <div className="mx-auto flex max-w-7xl items-center justify-between px-5 py-4 sm:px-8 lg:px-12">
-          <div className="flex items-center gap-3">
-            <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-orange-500/20 border border-orange-500/40 text-orange-500">
-              <Dumbbell className="h-5 w-5" />
-            </div>
-            <div>
-              <p className="text-sm font-extrabold tracking-tight text-white">
-                FitCoach
-              </p>
-              <p className="text-xs text-zinc-500">Your training space</p>
-            </div>
-          </div>
-          <div className="flex items-center gap-2">
-            <button
-              type="button"
-              onClick={() => navigate("/home")}
-              className="inline-flex items-center gap-2 rounded-full px-3 py-2 text-sm font-semibold text-zinc-400 transition hover:bg-white/5 hover:text-white"
-            >
-              <Home className="h-4 w-4" />{" "}
-              <span className="hidden sm:inline">Home</span>
-            </button>
-            <button
-              type="button"
-              onClick={onLogout}
-              className="inline-flex items-center gap-2 rounded-full px-3 py-2 text-sm font-semibold text-zinc-400 transition hover:bg-white/5 hover:text-white"
-            >
-              <LogOut className="h-4 w-4" />{" "}
-              <span className="hidden sm:inline">Log out</span>
-            </button>
-          </div>
-        </div>
-      </header>
+    <div className="min-h-screen bg-black text-white font-sans selection:bg-orange-500/30 selection:text-white">
+      {/* Sleek Minimal Sidebar (Always visible on desktop, drawer on mobile) */}
+      <DashboardSidebar
+        user={user}
+        onLogout={onLogout}
+        isOpenMobile={isMobileSidebarOpen}
+        onCloseMobile={() => setIsMobileSidebarOpen(false)}
+        activeTab={activeTab}
+        setActiveTab={(tab) => handleTabChange(tab)}
+      />
 
-      <div className="mx-auto max-w-7xl px-5 py-10 sm:px-8 lg:px-12 lg:py-14">
-        <section className="relative overflow-hidden rounded-[2rem] border border-white/10 bg-[#0c0a09] px-6 py-10 text-white sm:px-10 lg:px-14">
-          <div className="absolute right-0 top-0 h-64 w-64 translate-x-1/3 -translate-y-1/3 rounded-full bg-orange-500/15 blur-3xl" />
-          <div className="absolute inset-0 noise-texture opacity-20 pointer-events-none" />
-          <div className="relative max-w-2xl">
-            <p className="flex items-center gap-2 text-xs font-semibold uppercase tracking-[0.2em] text-orange-400">
-              <Sparkles className="h-4 w-4" /> Client dashboard
-            </p>
-            <h1 className="mt-4 text-3xl font-extrabold tracking-tight sm:text-5xl">
-              Welcome back,{" "}
-              <span className="text-[#f95716]">{user.name || "athlete"}</span>.
-            </h1>
-            <p className="mt-4 max-w-lg text-sm leading-6 text-zinc-400 sm:text-base">
-              Keep your next session intentional. Build a workout around the way
-              you want to train today.
-            </p>
-            <button
-              type="button"
-              onClick={() => navigate("/create-workout")}
-              className="mt-8 inline-flex items-center gap-2 rounded-full bg-[#f95716] px-6 py-3 text-sm font-semibold text-white shadow-[0_6px_22px_rgba(249,87,22,0.4)] transition hover:bg-[#ea4808]"
-            >
-              <Plus className="h-4 w-4" /> Create a workout
-            </button>
-            <button
-              type="button"
-              onClick={() => navigate("/log-session")}
-              className="ml-3 mt-8 inline-flex items-center gap-2 rounded-full border border-white/15 px-6 py-3 text-sm font-semibold text-zinc-300 transition hover:bg-white/5 hover:text-white"
-            >
-              <Dumbbell className="h-4 w-4" /> Start empty session
-            </button>
-          </div>
-        </section>
+      {/* Main Content Area (Offset by sidebar width on desktop) */}
+      <div className="flex flex-col md:pl-56">
+        {/* Minimal Top Header */}
+        <DashboardHeader
+          onOpenMobileSidebar={() => setIsMobileSidebarOpen(true)}
+          onStartEmpty={handleStartEmpty}
+          onCreateWorkout={handleCreateWorkout}
+        />
 
-        <section className="mt-8 rounded-[2rem] border border-white/10 bg-white/3 p-6 sm:p-8">
-          <div className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
-            <div>
-              <p className="text-xs font-semibold uppercase tracking-[0.18em] text-zinc-500">
-                Your library
-              </p>
-              <h2 className="mt-2 text-2xl font-extrabold tracking-tight text-white">
-                Workouts
-              </h2>
-            </div>
-          </div>
-          {workoutError && (
-            <p className="mt-6 rounded-xl border border-red-500/30 bg-red-500/10 px-4 py-3 text-sm text-red-300">
-              {workoutError}
-            </p>
+        <main className="relative flex-1 px-4 py-8 sm:px-8 max-w-5xl w-full mx-auto space-y-7 isolate">
+          {/* Subtle Ambient Warm Glow */}
+          <div className="pointer-events-none absolute -top-24 left-1/3 h-72 w-72 bg-gradient-to-br from-orange-500/15 via-amber-500/10 to-transparent blur-[120px] -z-10" />
+
+          {/* TAB 1: LOG PRESCRIBED SESSION (Read-only targets, prominent GIFs, only checkboxes) */}
+          {activeTab === "log-session" && (
+            <RoutineLogSessionView
+              workoutId={selectedWorkoutId}
+              onDone={() => handleTabChange("dashboard")}
+              onSaved={() => {
+                loadWorkouts();
+                handleTabChange("dashboard");
+              }}
+            />
           )}
-          {loadingWorkouts && (
-            <div className="mt-8 flex items-center justify-center py-12 text-sm text-zinc-500">
-              <Loader2 className="mr-2 h-4 w-4 animate-spin text-orange-500" />
-              Loading workouts
-            </div>
+
+          {/* TAB 2: START EMPTY WORKOUT (Add exercises, edit reps/weights, mark done checkboxes) */}
+          {activeTab === "empty-workout" && (
+            <EmptyWorkoutView
+              onDone={() => handleTabChange("dashboard")}
+              onSaved={() => {
+                loadWorkouts();
+                handleTabChange("dashboard");
+              }}
+            />
           )}
-          {!loadingWorkouts && !workoutError && !workouts.length && (
-            <div className="mt-8 flex flex-col items-center justify-center rounded-2xl border border-dashed border-white/15 px-6 py-12 text-center">
-              <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-orange-500/15 text-orange-400">
-                <Dumbbell className="h-5 w-5" />
-              </div>
-              <h3 className="mt-4 font-semibold text-white">
-                Your workout library is ready
-              </h3>
-              <p className="mt-2 max-w-sm text-sm leading-6 text-zinc-500">
-                Create your first workout and choose the exercises that belong
-                in your next session.
-              </p>
-              <button
-                type="button"
-                onClick={() => navigate("/create-workout")}
-                className="mt-5 inline-flex items-center gap-2 text-sm font-semibold text-orange-400 hover:text-orange-300"
-              >
-                <Plus className="h-4 w-4" /> Add your first workout
-              </button>
+
+          {/* TAB 2: CREATE WORKOUT / WORKOUT BUILDER (Embedded with Sidebar) */}
+          {activeTab === "create-workout" && (
+            <div className="rounded-sm border border-white/[0.08] bg-[#0c0e14] p-5 sm:p-7">
+              <WorkoutBuilder
+                user={user}
+                onCancel={() => handleTabChange("dashboard")}
+                onSaved={() => {
+                  loadWorkouts();
+                  handleTabChange("dashboard");
+                }}
+              />
             </div>
           )}
-          {!loadingWorkouts && workouts.length > 0 && (
-            <div className="mt-8 grid gap-3 sm:grid-cols-2">
-              {workouts.map((workout) => (
-                <article
-                  key={workout.workout_id}
-                  className="rounded-2xl border border-white/10 bg-white/3 p-5 transition hover:border-orange-500/30"
-                >
-                  <div className="flex items-start justify-between gap-4">
-                    <div>
-                      <h3 className="font-semibold text-white">
-                        {workout.name}
-                      </h3>
-                      <p className="mt-1 text-xs text-zinc-500">
-                        {new Date(workout.created_at).toLocaleDateString()}
-                      </p>
-                    </div>
-                    <Dumbbell className="h-4 w-4 shrink-0 text-orange-500" />
+
+          {/* TAB 3: ROUTINES ONLY VIEW */}
+          {activeTab === "routines" && (
+            <div className="space-y-6">
+              <RoutineList
+                workouts={workouts}
+                loading={loadingWorkouts}
+                onStartRoutine={handleStartRoutine}
+                onStartEmpty={handleStartEmpty}
+                onCreateWorkout={handleCreateWorkout}
+                onExplore={() => navigate("/home")}
+              />
+            </div>
+          )}
+
+          {/* TAB 4: DASHBOARD MAIN OVERVIEW */}
+          {activeTab === "dashboard" && (
+            <>
+              {/* API Error notice (if any) */}
+              {workoutError && (
+                <div className="flex items-center gap-2 rounded-sm border border-white/10 bg-white/[0.02] px-4 py-2.5 text-xs text-neutral-400">
+                  <AlertCircle className="h-4 w-4 text-orange-400 shrink-0" />
+                  <span>{workoutError}. Displaying recommended routines.</span>
+                </div>
+              )}
+
+              {/* Non-boxy Minimal Page Greeting Header */}
+              <div className="flex flex-col sm:flex-row sm:items-end sm:justify-between gap-4 pb-5 border-b border-white/[0.08]">
+                <div>
+                  <div className="flex items-center gap-1.5 text-xs font-mono text-neutral-400 mb-1">
+                    <Sparkles className="h-3.5 w-3.5 text-orange-400" />
+                    <span>Client Dashboard</span>
                   </div>
-                  {workout.description && (
-                    <p className="mt-3 line-clamp-2 text-sm leading-5 text-zinc-400">
-                      {workout.description}
-                    </p>
-                  )}
-                  <p className="mt-4 text-xs font-medium text-zinc-500">
-                    {workout.exercise_count} exercises · {workout.total_sets}{" "}
-                    sets
+                  <h1 className="text-2xl sm:text-3xl font-extrabold tracking-tight text-white">
+                    Welcome back, {user?.name || "Athlete"}.
+                  </h1>
+                  <p className="mt-1 text-xs sm:text-sm text-neutral-400">
+                    Keep your next session intentional. Build a workout around the way you want to train today.
                   </p>
+                </div>
+                <div className="flex items-center gap-2.5 shrink-0">
                   <button
                     type="button"
-                    onClick={() => navigate(`/log-session/${workout.workout_id}`)}
-                    className="mt-4 text-sm font-semibold text-orange-400 hover:text-orange-300"
+                    onClick={handleCreateWorkout}
+                    className="inline-flex items-center gap-1.5 rounded-sm bg-[#ff6723] hover:bg-[#f05a18] px-4 py-2 text-xs font-bold text-white transition shadow-[0_0_15px_rgba(255,103,35,0.25)]"
                   >
-                    Start workout
+                    <Plus className="h-3.5 w-3.5 stroke-[2.5]" />
+                    <span>Create a workout</span>
                   </button>
-                </article>
-              ))}
-            </div>
+                  <button
+                    type="button"
+                    onClick={handleStartEmpty}
+                    className="inline-flex items-center gap-1.5 rounded-sm border border-white/10 bg-white/[0.03] px-3.5 py-2 text-xs font-semibold text-neutral-300 transition hover:bg-white/[0.08] hover:text-white"
+                  >
+                    <Dumbbell className="h-3.5 w-3.5 text-orange-400" />
+                    <span>Start empty session</span>
+                  </button>
+                </div>
+              </div>
+
+              {/* Monthly Report Banner (Screenshot 1) */}
+              {!isBannerDismissed && (
+                <MonthlyReportCard
+                  onViewReport={() => setIsReportOpen(true)}
+                  onDismiss={() => setIsBannerDismissed(true)}
+                />
+              )}
+
+              {/* Routines Section (Screenshot 3) */}
+              <RoutineList
+                workouts={workouts}
+                loading={loadingWorkouts}
+                onStartRoutine={handleStartRoutine}
+                onStartEmpty={handleStartEmpty}
+                onCreateWorkout={handleCreateWorkout}
+                onExplore={() => navigate("/home")}
+              />
+
+              {/* Recent Workout Activity Card (Screenshot 1) */}
+              <RecentWorkoutCard
+                userName={user?.name || "Athlete"}
+                onStartEmpty={handleStartEmpty}
+              />
+            </>
           )}
-        </section>
+        </main>
       </div>
-    </main>
+
+      {/* Minimal Monthly Report Modal */}
+      <MonthlyReportModal
+        isOpen={isReportOpen}
+        onClose={() => setIsReportOpen(false)}
+      />
+    </div>
   );
 }

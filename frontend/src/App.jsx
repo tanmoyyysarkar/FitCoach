@@ -1,12 +1,18 @@
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useParams, Routes, Route, Navigate } from "react-router-dom";
 import HomeScreen from "./screens/HomeScreen";
 import DashboardScreen from "./screens/DashboardScreen";
 import LoginScreen from "./screens/LoginScreen";
 import SignupScreen from "./screens/SignupScreen";
-import CreateWorkoutScreen from "./screens/CreateWorkoutScreen";
-import LogSessionScreen from "./screens/LogSessionScreen";
 import { useAuth } from "./context/AuthContext";
-import { Routes, Route, Navigate } from "react-router-dom";
+
+function LogSessionRedirect({ user }) {
+  const { workoutId } = useParams();
+  if (!user) return <Navigate to="/login" replace />;
+  const target = workoutId
+    ? `/dashboard?tab=log-session&workoutId=${workoutId}`
+    : "/dashboard?tab=log-session";
+  return <Navigate to={target} replace />;
+}
 
 function App() {
   const navigate = useNavigate();
@@ -23,7 +29,7 @@ function App() {
   };
 
   return (
-    <div className="min-h-screen bg-[#0a0f1a] font-sans selection:bg-orange-500/40 selection:text-white">
+    <div className="min-h-screen bg-black font-sans selection:bg-orange-500/40 selection:text-white">
       <Routes>
         <Route path="/" element={<Navigate to="/home" replace />} />
         <Route
@@ -79,7 +85,7 @@ function App() {
           path="/create-workout"
           element={
             user ? (
-              <CreateWorkoutScreen />
+              <Navigate to="/dashboard?tab=create-workout" replace />
             ) : (
               <Navigate to="/login" replace />
             )
@@ -87,9 +93,7 @@ function App() {
         />
         <Route
           path="/log-session/:workoutId?"
-          element={
-            user ? <LogSessionScreen /> : <Navigate to="/login" replace />
-          }
+          element={<LogSessionRedirect user={user} />}
         />
         <Route path="*" element={<Navigate to="/home" replace />} />
       </Routes>
