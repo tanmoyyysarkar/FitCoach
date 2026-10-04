@@ -93,7 +93,7 @@ export default function DashboardSidebar({
   return (
     <>
       {/* Desktop Persistent Sidebar */}
-      <aside className="hidden md:flex md:w-56 md:flex-col md:fixed md:inset-y-0 md:z-30">
+      <aside className="hidden  md:flex md:w-56 md:flex-col md:fixed md:inset-y-0 md:z-30">
         <div className="flex h-full flex-col justify-between bg-black text-white px-3 py-5 border-r border-white/[0.08] select-none">
           {/* Brand Header */}
           <div>
@@ -104,7 +104,7 @@ export default function DashboardSidebar({
                 }}
                 className="flex cursor-pointer items-center gap-2.5 transition-opacity hover:opacity-90"
               >
-                <img src="logo.svg" className="h-7 w-7 text-white stroke-[2.2] rotate-45"/>
+                <img src="logo.svg" className="h-7 w-7 text-white stroke-[2.2] rotate-45" />
 
                 <div className="flex items-center gap-2">
                   <span className="text-sm font-bold tracking-tight text-white">
@@ -130,8 +130,8 @@ export default function DashboardSidebar({
                     key={item.id}
                     onClick={item.onClick}
                     className={`flex w-full items-center gap-2.5 rounded-sm px-3 py-2 text-xs font-medium transition ${isActive
-                        ? "bg-orange-500/15 text-orange-400 font-semibold border-l-2 border-orange-500"
-                        : "text-neutral-400 hover:bg-white/[0.04] hover:text-neutral-200"
+                      ? "bg-orange-500/15 text-orange-400 font-semibold border-l-2 border-orange-500"
+                      : "text-neutral-400 hover:bg-white/[0.04] hover:text-neutral-200"
                       }`}
                   >
                     <Icon className={`h-4 w-4 ${isActive ? "text-orange-400" : "text-neutral-500"}`} />
@@ -176,10 +176,9 @@ export default function DashboardSidebar({
         />
       )}
       <div
-        className={`fixed inset-y-0 left-0 z-50 w-60 transform bg-black transition-transform duration-200 md:hidden ${isOpenMobile ? "translate-x-0" : "-translate-x-full"
-          }`}
-      >
-        <div className="flex h-full flex-col justify-between bg-black text-white px-3 py-5 border-r border-white/[0.08] select-none">
+        className={`fixed inset-y-0 w-full left-0 z-50 w-60 transform bg-black transition-transform duration-200 md:hidden ${isOpenMobile ? "translate-x-0" : "-translate-x-full"
+          }`}>
+        <div className="flex h-full w-full flex-col justify-between bg-black text-white px-3 py-5 border-r border-white/[0.08] select-none">
           <div>
             <div className="flex items-center justify-between px-3 pb-5 border-b border-white/[0.08]">
               <div
@@ -221,8 +220,8 @@ export default function DashboardSidebar({
                     key={item.id}
                     onClick={item.onClick}
                     className={`flex w-full items-center gap-2.5 rounded-sm px-3 py-2 text-xs font-medium transition ${isActive
-                        ? "bg-orange-500/15 text-orange-400 font-semibold border-l-2 border-orange-500"
-                        : "text-neutral-400 hover:bg-white/[0.04] hover:text-neutral-200"
+                      ? "bg-orange-500/15 text-orange-400 font-semibold border-l-2 border-orange-500"
+                      : "text-neutral-400 hover:bg-white/[0.04] hover:text-neutral-200"
                       }`}
                   >
                     <Icon className={`h-4 w-4 ${isActive ? "text-orange-400" : "text-neutral-500"}`} />
