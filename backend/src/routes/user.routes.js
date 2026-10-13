@@ -1,6 +1,6 @@
 import {Router} from "express"
-import { getUser, loginUser, logoutUser, refreshAccessToken, registerUser } from "../controllers/user.controller.js";
-import { verifyJWT } from "../middleware/auth.middleware.js";
+import { activateClient, getUser, listClients, loginUser, logoutUser, refreshAccessToken, registerUser } from "../controllers/user.controller.js";
+import { requireRole, verifyJWT } from "../middleware/auth.middleware.js";
 
 export const userRouter = Router();
 
@@ -10,6 +10,8 @@ userRouter.route("/register").post(registerUser)
 userRouter.route("/logout").post(verifyJWT,  logoutUser)
 userRouter.route("/refresh-token").post(refreshAccessToken)
 userRouter.route("/me").get(verifyJWT, getUser)
+userRouter.route("/clients").get(verifyJWT, requireRole("trainer", "admin"), listClients)
+userRouter.route("/clients/:clientId/activate").post(verifyJWT, requireRole("trainer"), activateClient)
 /*userRouter.route("/refresh-token").post(refreshAccessToken)
 userRouter.route("/change-password").post(verifyJWT, changeCurrentPassword)
 userRouter.route("/current-user").get(verifyJWT, getCurrentUser) */
