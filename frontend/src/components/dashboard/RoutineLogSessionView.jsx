@@ -1,14 +1,12 @@
-import React, { useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import {
   ArrowLeft,
   Check,
   CheckCircle2,
   Clock,
   Dumbbell,
-  Flame,
   Info,
   Loader2,
-  RotateCcw,
   Sparkles,
   Trophy,
   ChevronDown,
@@ -17,6 +15,7 @@ import {
 } from "lucide-react";
 import api from "../../api/axios";
 import WorkoutShareModal from "./WorkoutShareModal";
+import { DEMO_ROUTINES } from "../../data/demoRoutines";
 
 // Format title case
 const formatName = (name) =>
@@ -27,7 +26,7 @@ const formatName = (name) =>
     .join(" ");
 
 // High fidelity preset routines with real verified animated GIFs and exercise details
-const ROUTINE_PRESETS = {
+const LEGACY_ROUTINE_PRESETS = {
   leg: {
     name: "Leg Hypertrophy Routine",
     description: "Quad and hamstring volume focus with smith machine squats and machine presses.",
@@ -229,6 +228,33 @@ const ROUTINE_PRESETS = {
   },
 };
 
+const ROUTINE_PRESETS = Object.fromEntries(
+  DEMO_ROUTINES.map((routine) => [
+    routine.key,
+    {
+      name: routine.name,
+      description: routine.description,
+      exercises: routine.exercises.map((exercise) => ({
+        exerciseId: exercise.exerciseId,
+        name: exercise.name,
+        gifUrl: `https://static.exercisedb.dev/media/${exercise.exerciseId}.gif`,
+        targetMuscles: [],
+        equipment: "Gym equipment",
+        restSeconds: 90,
+        instructions: [],
+        sets: exercise.sets.map((set, index) => ({
+          setNumber: index + 1,
+          weight: set.weight == null ? "0" : String(set.weight),
+          reps: String(set.reps),
+          completed: false,
+        })),
+      })),
+    },
+  ]),
+);
+
+void LEGACY_ROUTINE_PRESETS;
+
 export default function RoutineLogSessionView({ workoutId, onDone, onSaved }) {
   const [routineName, setRoutineName] = useState("Workout Routine");
   const [description, setDescription] = useState("");
@@ -307,7 +333,7 @@ export default function RoutineLogSessionView({ workoutId, onDone, onSaved }) {
             setLoading(false);
             return;
           }
-        } catch (fetchErr) {
+        } catch {
           // If server error or unseeded id, default to pull preset as safe fallback
           if (!cancelled) {
             const fallback = ROUTINE_PRESETS.pull;
@@ -416,7 +442,7 @@ export default function RoutineLogSessionView({ workoutId, onDone, onSaved }) {
       setSuccess("Great workout! Session recorded successfully.");
       if (onSaved) onSaved();
       setShowCelebration(true);
-    } catch (saveErr) {
+    } catch {
       setError("Failed to record session. Please try again.");
     } finally {
       setSaving(false);

@@ -1,6 +1,7 @@
 import { useNavigate, useParams, Routes, Route, Navigate } from "react-router-dom";
 import HomeScreen from "./screens/HomeScreen";
 import DashboardScreen from "./screens/DashboardScreen";
+import TrainerDashboardScreen from "./screens/TrainerDashboardScreen";
 import LoginScreen from "./screens/LoginScreen";
 import SignupScreen from "./screens/SignupScreen";
 import { useAuth } from "./context/AuthContext";
@@ -20,7 +21,7 @@ function App() {
 
   const handleAuthSuccess = (userData) => {
     setAuthenticatedUser(userData);
-    navigate(userData?.role === "client" ? "/dashboard" : "/home");
+    navigate(["client", "trainer"].includes(userData?.role) ? "/dashboard" : "/home");
   };
 
   const handleLogout = async () => {
@@ -46,7 +47,9 @@ function App() {
         <Route
           path="/dashboard"
           element={
-            user?.role === "client" ? (
+            user?.role === "trainer" ? (
+              <TrainerDashboardScreen user={user} onLogout={handleLogout} />
+            ) : user?.role === "client" ? (
               <DashboardScreen user={user} onLogout={handleLogout} />
             ) : (
               <Navigate to="/login" replace />
@@ -56,7 +59,7 @@ function App() {
         <Route
           path="/login"
           element={
-            user?.role === "client" ? (
+            user?.role === "client" || user?.role === "trainer" ? (
               <Navigate to="/dashboard" replace />
             ) : (
               <LoginScreen

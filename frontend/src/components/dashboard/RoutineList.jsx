@@ -1,29 +1,14 @@
-import React, { useState } from "react";
+import { useState } from "react";
 import { Plus, FolderPlus, Compass, MoreHorizontal, Play, Loader2 } from "lucide-react";
+import { DEMO_ROUTINES } from "../../data/demoRoutines";
 
-const DEFAULT_TEMPLATES = [
-  {
-    id: "leg",
-    name: "leg",
-    exercises: "Squat (Smith Machine), Leg Press (Machine), Leg Extension (Machine), Lying Leg Curl (Machine), Standing Calf Raise",
-    count: 5,
-    sets: 18,
-  },
-  {
-    id: "push",
-    name: "Push",
-    exercises: "Bench Press (Smith Machine), Incline Bench Press (Smith Machine), Cable Fly Crossovers, Lateral Raises (Dumbbell), Tricep Pushdown",
-    count: 5,
-    sets: 16,
-  },
-  {
-    id: "pull",
-    name: "Pull",
-    exercises: "Lat Pulldown (Cable), Single Arm Cable Row, Seated Cable Row - V Grip (Cable), Face Pulls, Dumbbell Bicep Curl",
-    count: 5,
-    sets: 17,
-  },
-];
+const DEFAULT_TEMPLATES = DEMO_ROUTINES.map((routine) => ({
+  id: routine.key,
+  name: routine.name,
+  exercises: routine.exercises.map((exercise) => exercise.name).join(", "),
+  count: routine.exercises.length,
+  sets: routine.exercises.reduce((total, exercise) => total + exercise.sets.length, 0),
+}));
 
 export default function RoutineList({
   workouts = [],

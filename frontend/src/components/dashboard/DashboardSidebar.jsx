@@ -6,6 +6,7 @@ import {
   PlayCircle,
   Plus,
   Compass,
+  MessageCircle,
   LogOut,
   X,
 } from "lucide-react";
@@ -76,6 +77,15 @@ export default function DashboardSidebar({
       icon: Compass,
       onClick: () => {
         navigate("/home");
+        if (onCloseMobile) onCloseMobile();
+      },
+    },
+    {
+      id: "messages",
+      label: "Messages",
+      icon: MessageCircle,
+      onClick: () => {
+        if (setActiveTab) setActiveTab("messages");
         if (onCloseMobile) onCloseMobile();
       },
     },

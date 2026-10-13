@@ -12,6 +12,11 @@ services:
     volumes:
       - postgres_data:/var/lib/postgresql
       - ./database/init:/docker-entrypoint-initdb.d
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U fitness_user -d fitness_db"]
+      interval: 5s
+      timeout: 5s
+      retries: 12
 
   backend:
     build: ./backend
@@ -24,7 +29,8 @@ services:
       ACCESS_TOKEN_SECRET: your_secret_hash
       REFRESH_TOKEN_SECRET: your_secret_hash_again
     depends_on:
-      - postgres
+      postgres:
+        condition: service_healthy
     volumes:
       - ./backend:/app
       - /app/node_modules
@@ -35,7 +41,8 @@ services:
     ports:
       - "5173:5173"
     depends_on:
-      - backend
+      backend:
+        condition: service_started
     volumes:
       - ./frontend:/app
       - /app/node_modules
