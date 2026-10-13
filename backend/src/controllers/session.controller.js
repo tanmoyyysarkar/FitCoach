@@ -104,7 +104,8 @@ export const createSession = asyncHandler(async (req, res) => {
 
 export const getRecentSessions = asyncHandler(async (req, res) => {
   const { user_id: authUserId, role } = req.user;
-  const targetUserId = role === "admin" && req.query.userId ? req.query.userId : authUserId;
+  const canInspectUsers = role === "admin" || role === "trainer";
+  const targetUserId = canInspectUsers && req.query.userId ? req.query.userId : authUserId;
   const limit = Math.min(Math.max(Number.parseInt(req.query.limit, 10) || 5, 1), 20);
 
   const queryText = `
@@ -116,7 +117,7 @@ export const getRecentSessions = asyncHandler(async (req, res) => {
       LIMIT $2
     ),
     exercise_data AS (
-      SELECT 
+      SELECT
         se.session_id,
         se.session_exercise_id,
         se.exercise_order,
@@ -133,8 +134,8 @@ export const getRecentSessions = asyncHandler(async (req, res) => {
         COUNT(st.set_id)::INT AS sets_count,
         COALESCE(SUM(st.reps * COALESCE(st.weight, 0)), 0) AS exercise_volume,
         STRING_AGG(
-          CASE 
-            WHEN st.weight IS NOT NULL AND st.weight > 0 
+          CASE
+            WHEN st.weight IS NOT NULL AND st.weight > 0
               THEN (CASE WHEN st.weight = ROUND(st.weight) THEN ROUND(st.weight)::TEXT ELSE ROUND(st.weight, 1)::TEXT END) || ' kg × ' || st.reps::TEXT
             ELSE st.reps::TEXT || ' reps'
           END,
@@ -142,8 +143,8 @@ export const getRecentSessions = asyncHandler(async (req, res) => {
           ORDER BY st.set_number
         ) AS details,
         STRING_AGG(
-          CASE 
-            WHEN st.weight IS NOT NULL AND st.weight > 0 
+          CASE
+            WHEN st.weight IS NOT NULL AND st.weight > 0
               THEN (CASE WHEN st.weight = ROUND(st.weight) THEN ROUND(st.weight)::TEXT ELSE ROUND(st.weight, 1)::TEXT END)
             ELSE 'BW'
           END,
@@ -156,7 +157,7 @@ export const getRecentSessions = asyncHandler(async (req, res) => {
       WHERE se.session_id IN (SELECT session_id FROM user_sessions)
       GROUP BY se.session_id, se.session_exercise_id, se.exercise_order, e.exercise_id, e.name, e.gif_url, e.target_muscles, e.body_parts
     )
-    SELECT 
+    SELECT
       us.session_id,
       us.name,
       us.started_at,
@@ -166,10 +167,10 @@ export const getRecentSessions = asyncHandler(async (req, res) => {
       COALESCE(SUM(ed.exercise_volume), 0)::NUMERIC AS total_volume,
       COALESCE(SUM(ed.sets_count), 0)::INT AS total_sets,
       (
-        SELECT COUNT(*)::INT 
-        FROM personal_records pr 
-        WHERE pr.user_id = us.user_id 
-          AND pr.achieved_at >= us.started_at 
+        SELECT COUNT(*)::INT
+        FROM personal_records pr
+        WHERE pr.user_id = us.user_id
+          AND pr.achieved_at >= us.started_at
           AND (us.ended_at IS NULL OR pr.achieved_at <= us.ended_at)
       ) AS pr_count,
       COALESCE(

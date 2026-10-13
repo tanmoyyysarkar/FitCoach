@@ -1,5 +1,6 @@
-import React, { useState } from "react"
+import { useState } from "react"
 import { motion, AnimatePresence } from "framer-motion"
+import { useNavigate } from "react-router-dom"
 import {
   ClipboardList,
   Send,
@@ -99,6 +100,7 @@ const COMPARISON_ITEMS = [
 ]
 
 export default function ExploreSection({ onOpenSignup, user }) {
+  const navigate = useNavigate()
   const [activeTab, setActiveTab] = useState("trainer") // "trainer" | "client"
   const currentFeatures = activeTab === "trainer" ? TRAINER_FEATURES : CLIENT_FEATURES
 
@@ -284,7 +286,7 @@ export default function ExploreSection({ onOpenSignup, user }) {
 
           <button
             type="button"
-            onClick={onOpenSignup}
+            onClick={() => user ? navigate("/dashboard") : onOpenSignup()}
             className="inline-flex items-center gap-2.5 bg-white text-black px-7 py-3.5 rounded-full text-sm font-semibold hover:bg-neutral-200 active:scale-95 transition-all cursor-pointer shadow-lg shrink-0"
           >
             <span>{user ? "Go to Dashboard" : "Get Started"}</span>

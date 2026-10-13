@@ -275,3 +275,60 @@ export const getUser = asyncHandler(async (req, res) => {
     );
   }
 });
+
+export const listClients = asyncHandler(async (req, res) => {
+  const { user_id: userId, role } = req.user;
+  const { rows } = await pool.query(`
+    SELECT
+      u.user_id,
+      u.name,
+      u.email,
+      u.date_of_birth,
+      u.gender,
+      u.height,
+      u.created_at,
+      COUNT(s.session_id)::INT AS session_count,
+      MAX(s.started_at) AS last_session_at,
+      COALESCE(relationship.status, 'available') AS relationship_status
+    FROM users u
+    LEFT JOIN sessions s ON s.user_id = u.user_id
+    LEFT JOIN LATERAL (
+      SELECT cc.status
+      FROM coach_clients cc
+      WHERE cc.client_id = u.user_id
+        AND ($1 = 'admin' OR cc.trainer_id = $2)
+      ORDER BY cc.coach_client_id DESC
+      LIMIT 1
+    ) relationship ON true
+    WHERE u.role = 'client'
+    GROUP BY u.user_id, relationship.status
+    ORDER BY u.name ASC
+  `, [role, userId]);
+
+  return res.status(200).json(new ApiResponse(200, rows, "Clients fetched"));
+});
+
+export const activateClient = asyncHandler(async (req, res) => {
+  const { user_id: trainerId, role } = req.user;
+  const { clientId } = req.params;
+
+  if (role !== "trainer") throw new ApiError(403, "Only trainers can activate clients");
+  if (!/^\d+$/.test(String(clientId))) throw new ApiError(400, "Invalid client id");
+
+  const { rows: [client] } = await pool.query(
+    "SELECT user_id FROM users WHERE user_id = $1 AND role = 'client'",
+    [clientId],
+  );
+  if (!client) throw new ApiError(404, "Client not found");
+
+  const { rows: [relationship] } = await pool.query(
+    `INSERT INTO coach_clients (trainer_id, client_id, status, start_date, end_date)
+     VALUES ($1, $2, 'active', CURRENT_DATE, NULL)
+     ON CONFLICT (trainer_id, client_id) DO UPDATE
+     SET status = 'active', start_date = COALESCE(coach_clients.start_date, CURRENT_DATE), end_date = NULL
+     RETURNING coach_client_id, trainer_id, client_id, status, start_date, end_date`,
+    [trainerId, clientId],
+  );
+
+  return res.status(200).json(new ApiResponse(200, relationship, "Client activated"));
+});

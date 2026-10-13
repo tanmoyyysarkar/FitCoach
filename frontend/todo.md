@@ -2,7 +2,7 @@
 
 ## Current Context
 
-The current dashboard is client-only. Trainers are redirected away from `/dashboard` and do not yet have a trainer workspace.
+The dashboard now routes trainers to a trainer workspace. Trainers can select an active client and assign a workout built from the exercise library.
 
 Implemented and verified client flows:
 
@@ -15,6 +15,9 @@ Implemented and verified client flows:
 - Demo client `tuna@gmail.com` can authenticate and log a session persisted to PostgreSQL.
 - Demo Leg, Push, and Pull routines are represented by the shared data module and are also seeded and assigned in the database.
 - Docker startup waits for PostgreSQL readiness before starting the backend.
+- Trainer login routes to a protected trainer dashboard.
+- Trainers can list available clients, activate a client relationship, and assign a workout from the exercise library.
+- Assigned workouts are visible in the client routines list; the trainer and client API flows were smoke-tested against Docker.
 
 Known dummy or incomplete UI:
 
@@ -24,14 +27,14 @@ Known dummy or incomplete UI:
 - RPE input is missing.
 - Assigned-session logging does not allow actual reps or weight to differ from targets.
 - Session save errors are swallowed in the routine and empty workout views, so success can be shown when the API failed.
-- No trainer dashboard or trainer navigation.
-- No UI for client relationships, assignments to multiple clients, progress analytics, injuries, measurements, goals, or messages.
+- No UI for pending relationship requests, ending relationships, assigning to multiple clients at once, progress analytics, injuries, measurements, goals, or messages.
 
 ## Product Work To Build
 
-- [ ] Add trainer route protection and a trainer dashboard shell. Authentication works, but trainers currently land outside the client dashboard.
-- [ ] Add trainer-client relationship screens: pending requests, active clients, accept/reject/end actions.
-- [ ] Add trainer client selector and assignment workflow for workout templates.
+- [x] Build the bare-minimum frontend for each new feature first so functionality can be checked before UI polish.
+- [x] Add trainer route protection and a trainer dashboard shell. Trainers can access `/dashboard` through the authenticated trainer route.
+- [ ] Add full trainer-client relationship screens: pending requests, accept/reject/end actions. The assignment flow now supports trainer activation of an available client.
+- [x] Add trainer client selector and assignment workflow for workout templates. Assignments require an active `coach_clients` relationship and appear in the client routines list.
 - [ ] Separate reusable trainer templates from client-owned routines.
 - [ ] Add template edit and duplicate flows.
 - [ ] Improve assigned workout logging to capture actual reps, weight, and RPE per set.

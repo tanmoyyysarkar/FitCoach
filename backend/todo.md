@@ -11,6 +11,9 @@ Implemented and verified backend behavior:
 - Workout creation, retrieval, listing, and update.
 - Client-owned workouts and assignment validation for an active trainer-client relationship.
 - Single-client workout assignment during workout creation.
+- Trainer-only client listing with relationship status and client activation endpoint.
+- Trainer assignment authorization is enforced against an active `coach_clients` relationship.
+- Trainer client listing, activation, and client workout visibility were smoke-tested against the running Docker stack.
 - Session creation with completed reps and weight.
 - Recent session aggregation with volume, set counts, and a PR count query.
 - Fresh-container seed creates a development trainer, the `TunaMayo` client, their active relationship, and three assigned routines.
@@ -20,8 +23,8 @@ Implemented and verified backend behavior:
 
 Known backend gaps:
 
-- The demo relationship is seeded, but there are no coach-client relationship routes or controllers.
-- No trainer client-management workflow.
+- Relationship management is limited to trainer activation; pending requests, accept/reject/end actions, and client-initiated requests are not implemented.
+- No full trainer client-management workflow.
 - No multi-client assignment endpoint or assignment management endpoint.
 - Session creation does not accept or persist RPE.
 - No automatic PR calculation or inserts into `personal_records`.
@@ -33,7 +36,7 @@ Known backend gaps:
 
 ## API and Domain Work To Build
 
-- [ ] Add relationship endpoints: request, list, accept, reject, end, and status checks.
+- [ ] Add complete relationship endpoints: request, list, accept, reject, end, and status checks. Trainer client listing and activation are implemented.
 - [ ] Add shared relationship authorization helpers for trainer/client resources.
 - [ ] Add trainer template endpoints with create, read, update, archive, and duplicate behavior.
 - [ ] Add assignment endpoints supporting one or more active clients, status changes, and assignment history.

@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react"
-import { Check, ChevronDown, ChevronUp, Loader2, Plus, Search, Trash2, X } from "lucide-react"
+import { Check, Loader2, Plus, Search, Trash2, X } from "lucide-react"
 import api from "@/api/axios"
 import {
   Dialog,
@@ -11,7 +11,7 @@ import {
 
 const emptySet = () => ({ weight: "", reps: "" })
 
-export default function WorkoutBuilder({ user, onCancel, onSaved }) {
+export default function WorkoutBuilder({ user, targetUser = user, onCancel, onSaved }) {
   const [name, setName] = useState("")
   const [description, setDescription] = useState("")
   const [search, setSearch] = useState("")
@@ -71,16 +71,6 @@ export default function WorkoutBuilder({ user, onCancel, onSaved }) {
     setDraftSets((current) => current.filter((_, index) => index !== setIndex))
   }
 
-  const nudgeDraftSet = (setIndex, field, delta) => {
-    setDraftSets((current) => current.map((set, index) => {
-      if (index !== setIndex) return set
-      const base = set[field] === "" ? 0 : Number(set[field])
-      const min = field === "reps" ? 1 : 0
-      const next = Math.max(min, Math.round((base + delta) * 100) / 100)
-      return { ...set, [field]: String(next) }
-    }))
-  }
-
   const saveExercise = () => {
     if (!draftSets.length) {
       setError("Add at least one set")
@@ -129,7 +119,7 @@ export default function WorkoutBuilder({ user, onCancel, onSaved }) {
       await api.post("/workouts", {
         name: name.trim(),
         description: description.trim() || null,
-        clientId: user.user_id,
+        clientId: targetUser.user_id,
         exercises: selectedExercises.map((exercise) => ({
           exerciseId: exercise.exercise_id,
           sets: exercise.sets.map((set) => ({
@@ -138,7 +128,9 @@ export default function WorkoutBuilder({ user, onCancel, onSaved }) {
           })),
         })),
       })
-      setSuccess("Workout saved successfully")
+      setSuccess(targetUser.user_id === user.user_id
+        ? "Workout saved successfully"
+        : `Workout assigned to ${targetUser.name}`)
       window.setTimeout(onSaved, 500)
     } catch (requestError) {
       setError(requestError.response?.data?.message || "Could not save workout")
@@ -155,11 +147,13 @@ export default function WorkoutBuilder({ user, onCancel, onSaved }) {
           <div className="flex items-center gap-2">
             <span className="h-[2px] w-4 bg-[#ff6723]" />
             <p className="text-[10px] font-mono font-semibold uppercase tracking-widest text-orange-400">
-              Workout Builder
+              {targetUser.user_id === user.user_id ? "Workout Builder" : "Assign Workout"}
             </p>
           </div>
           <h2 className="mt-2 text-2xl font-extrabold tracking-tight text-white sm:text-3xl">
-            Build your next routine
+            {targetUser.user_id === user.user_id
+              ? "Build your next routine"
+              : `Build a routine for ${targetUser.name}`}
           </h2>
           <p className="mt-1 text-xs text-neutral-400">
             Define target exercises, sets, reps, and baseline weight.

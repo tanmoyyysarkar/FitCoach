@@ -5,6 +5,7 @@ import { userRouter } from "./routes/user.routes.js";
 import { exerciseRouter } from "./routes/exercise.routes.js";
 import { workoutRouter } from "./routes/workout.routes.js";
 import { sessionRouter } from "./routes/session.routes.js";
+import { messageRouter } from "./routes/message.routes.js";
 export const app = express();
 
 app.use(
@@ -20,6 +21,7 @@ app.use("/api/users", userRouter)
 app.use("/api/exercises", exerciseRouter)
 app.use("/api/workouts", workoutRouter)
 app.use("/api/sessions", sessionRouter)
+app.use("/api/messages", messageRouter)
 
 app.get("/api/health", (req, res) => {
   res.json({

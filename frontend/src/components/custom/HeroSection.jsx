@@ -147,7 +147,7 @@ export default function HeroSection({ onOpenSignup, onOpenLogin, onLogout, onExp
             {user ? (
               <button
                 type="button"
-                onClick={() => navigate(user.role === "client" ? "/dashboard" : "/home")}
+                onClick={() => navigate(["client", "trainer"].includes(user.role) ? "/dashboard" : "/home")}
                 className="bg-[#f95716] hover:bg-[#ea4808] text-white text-sm sm:text-base font-semibold px-6 sm:px-7 py-3.5 rounded-full shadow-[0_6px_22px_rgba(249,87,22,0.4)] hover:shadow-[0_8px_30px_rgba(249,87,22,0.6)] active:scale-95 transition-all flex items-center justify-center gap-2.5 cursor-pointer group"
               >
                 <Dumbbell className="w-4 h-4 text-white" />

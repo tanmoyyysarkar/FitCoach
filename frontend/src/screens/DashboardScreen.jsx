@@ -13,6 +13,7 @@ import {
   EmptyWorkoutView,
 } from "../components/dashboard";
 import WorkoutBuilder from "../components/custom/WorkoutBuilder";
+import MessagesScreen from "./MessagesScreen";
 import { Sparkles, Plus, Dumbbell, AlertCircle } from "lucide-react";
 
 export default function DashboardScreen({ user, onLogout }) {
@@ -100,7 +101,7 @@ export default function DashboardScreen({ user, onLogout }) {
           onCreateWorkout={handleCreateWorkout}
         />
 
-        <main className="relative flex-1 px-4 py-8 sm:px-8 max-w-5xl w-full mx-auto space-y-7 isolate">
+        <main className={`relative flex-1 w-full mx-auto space-y-7 isolate ${activeTab === "messages" ? "max-w-none px-4 py-4 sm:px-6" : "max-w-5xl px-4 py-8 sm:px-8"}`}>
           {/* Subtle Ambient Warm Glow */}
           <div className="pointer-events-none absolute -top-24 left-1/3 h-72 w-72 bg-gradient-to-br from-orange-500/15 via-amber-500/10 to-transparent blur-[120px] -z-10" />
 
@@ -154,6 +155,8 @@ export default function DashboardScreen({ user, onLogout }) {
               />
             </div>
           )}
+
+          {activeTab === "messages" && <MessagesScreen user={user} />}
 
           {/* TAB 4: DASHBOARD MAIN OVERVIEW */}
           {activeTab === "dashboard" && (
