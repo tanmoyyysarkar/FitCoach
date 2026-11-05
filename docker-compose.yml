@@ -39,7 +39,7 @@ services:
     build: ./frontend
     container_name: fitness-frontend
     ports:
-      - "5173:5173"
+      - "3000:5173"
     depends_on:
       backend:
         condition: service_started
