@@ -3105,7 +3105,7 @@ COPY public.injury_reports (injury_id, user_id, body_area, severity, reported_at
 -- Data for Name: messages; Type: TABLE DATA; Schema: public; Owner: postgres
 --
 
-COPY public.messages (message_id, coach_client_id, sender_id, content, sent_at) FROM stdin;
+COPY public.messages (message_id, sender_id, recipient_id, body, sent_at) FROM stdin;
 \.
 
 

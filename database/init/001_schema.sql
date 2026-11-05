@@ -199,7 +199,7 @@ CREATE TABLE IF NOT EXISTS sessions (
     user_id BIGINT NOT NULL,
     workout_id BIGINT,
 
-    name VARCHAR(150) NOT NULL,
+    name VARCHAR(150) NOT NULL DEFAULT 'Workout session',
 
     started_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
     ended_at TIMESTAMPTZ,
@@ -335,25 +335,6 @@ CREATE TABLE IF NOT EXISTS body_measurements (
     thigh NUMERIC(6,2),
 
     FOREIGN KEY (user_id)
-        REFERENCES users(user_id)
-        ON DELETE CASCADE
-);
-
-CREATE TABLE IF NOT EXISTS messages (
-    message_id BIGSERIAL PRIMARY KEY,
-
-    coach_client_id BIGINT NOT NULL,
-    sender_id BIGINT NOT NULL,
-
-    content TEXT NOT NULL,
-
-    sent_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
-
-    FOREIGN KEY (coach_client_id)
-        REFERENCES coach_clients(coach_client_id)
-        ON DELETE CASCADE,
-
-    FOREIGN KEY (sender_id)
         REFERENCES users(user_id)
         ON DELETE CASCADE
 );
